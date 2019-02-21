@@ -98,7 +98,7 @@ def flow_to_color(u, v, display=True, min_is_black=True, max_norm=None):
             col_interp[mask] = 1 - radius[mask] * (1 - col_interp[mask])
 
         col_interp[~mask] = 0.75 * col_interp[~mask]
-        img[:, :, i] = 255 * col * (~nan_mask)
+        img[:, :, i] = 255 * col_interp * (~nan_mask)
 
     if display:
         plt.figure()
