@@ -3,6 +3,24 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from struct import unpack
+
+
+def flow_write(filename, u, v):
+    assert u.shape == v.shape
+    with open(filename, "wb") as f:
+        f.write(b'PIEH')
+        np.flip(u.shape).astype("uint32").tofile(f)
+        np.stack((u,v), axis=-1).flatten().astype("float32").tofile(f)
+
+
+def flow_read(filename):
+    with open(filename, 'rb') as f:
+        assert f.read(4) == b'PIEH', filename + " does not seem to be a flo file."
+        ny, nx = unpack("II", f.read(8))
+        result = np.fromfile(f, dtype="float32").reshape((nx, ny, 2))
+    return result[:,:,0], result[:,:,1]
+
 
 def make_colorwheel():
     """ make_colorwheel
@@ -69,17 +87,17 @@ def flow_to_color(u, v, display=True, min_is_black=True, max_norm=None):
 
     # get color interpolation between values
     for i in range(3):
-        col0 = wheel[hue_floor, i] / 255
-        col1 = wheel[hue_ceil, i] / 255
-        col = (1 - hue_fraction) * col0 + hue_fraction * col1
+        col_floor = wheel[hue_floor, i] / 255
+        col_ceil = wheel[hue_ceil, i] / 255
+        col_interp = (1 - hue_fraction) * col_floor + hue_fraction * col_ceil
         mask = radius <= 1
 
         if min_is_black:
-            col[mask] = radius[mask] * col[mask]
+            col_interp[mask] = radius[mask] * col_interp[mask]
         else:
-            col[mask] = 1 - radius[mask] * (1 - col[mask])
+            col_interp[mask] = 1 - radius[mask] * (1 - col_interp[mask])
 
-        col[~mask] = 0.75 * col[~mask]
+        col_interp[~mask] = 0.75 * col_interp[~mask]
         img[:, :, i] = 255 * col * (~nan_mask)
 
     if display:
@@ -88,6 +106,7 @@ def flow_to_color(u, v, display=True, min_is_black=True, max_norm=None):
         plt.show()
 
     return img
+
 
 def test_pattern(width=151, min_is_black=True, show=True):
     """ test_pattern
