@@ -61,23 +61,29 @@ def make_colorwheel():
 
     return colorwheel, ncols
 
-def flow_to_color(u, v, display=True, min_is_black=True, max_norm=None):
-    """ flow_to_color
-    """
+
+def __get_polar(u, v):
     nan_mask = np.isnan(u) | np.isnan(v)
     u[nan_mask] = 0
     v[nan_mask] = 0
 
     radius = np.sqrt(u**2 + v**2)
+    angle = np.arctan2(v, u)
+
+    return radius, angle
+
+
+def flow_to_color(u, v, min_is_black=True, max_norm=None):
+    """ flow_to_color
+    """
+    radius, angle = __get_polar(u, v)
     if max_norm is None:
         max_norm = np.max(radius)
-
-    radius *= (1 / max_norm)
-    angle = np.arctan2(-v, -u) / np.pi
+    radius *= (1/max_norm)
 
     wheel, ncols = make_colorwheel()
 
-    hue_float = (angle + 1) / 2 * (ncols - 1)
+    hue_float = (-angle * (1 / np.pi) + 1) / 2 * (ncols - 1)
     hue_fraction, hue_floor = np.modf(hue_float)
 
     hue_floor = hue_floor.astype(int)
@@ -98,14 +104,69 @@ def flow_to_color(u, v, display=True, min_is_black=True, max_norm=None):
             col_interp[mask] = 1 - radius[mask] * (1 - col_interp[mask])
 
         col_interp[~mask] = 0.75 * col_interp[~mask]
-        img[:, :, i] = 255 * col_interp * (~nan_mask)
+        img[:, :, i] = 255 * col_interp
 
-    if display:
-        plt.figure()
-        plt.imshow(img)
-        plt.show()
 
     return img
+
+
+def show_flow_color(u, v, min_is_black=True, max_norm=None):
+    flow_rgb = flow_to_color(u, v, min_is_black=min_is_black, max_norm=max_norm)
+
+    plt.figure()
+    plt.imshow(flow_rgb)
+    plt.title("Color representation of the flow")
+    plt.tight_layout()
+    plt.show()
+
+
+def show_flow_polar(u, v, max_norm=None):
+    radius, angle = __get_polar(u, v)
+    plt.figure()
+    plt.subplot(1, 2, 1)
+    plt.imshow(radius)
+    plt.title("Flow radius in pixels")
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(angle * (180 / np.pi))
+    plt.title("Flow angle in degrees")
+
+    plt.tight_layout()
+    plt.show()
+
+
+def show_flow_arrows(u, v, max_norm=None, min_is_black=True, sub_factors=None):
+    h, w = u.shape
+    y, x = np.mgrid[:h,:w]
+
+    if sub_factors is None:
+        sub_factor_x = int(w/25.5)
+        sub_factor_y = int(h/25.5)
+    elif isinstance(sub_factors, (tuple, list, np.ndarray)):
+        sub_factor_x, sub_factor_y = sub_factors
+    else:
+        sub_factor_x = sub_factor_y = sub_factors
+
+    plt.figure()
+
+    flow_rgb = flow_to_color(u, v, min_is_black=min_is_black, max_norm=max_norm)
+    plt.imshow(flow_rgb)
+
+    plt.quiver(x[::sub_factor_x,::sub_factor_y],
+               y[::sub_factor_x,::sub_factor_y],
+               u[::sub_factor_x,::sub_factor_y],
+               v[::sub_factor_x,::sub_factor_y],
+               color="w" if min_is_black else "k")
+    plt.ylim(h, 0)
+
+    plt.title("Arrows (not true scale) over rgb representation")
+    plt.tight_layout()
+    plt.show()
+
+
+def show_flow(u, v, max_norm=None, min_is_black=True, sub_factors=None):
+    show_flow_arrows(u, v, max_norm=max_norm, min_is_black=min_is_black, sub_factors=sub_factors)
+    show_flow_polar(u, v, max_norm=max_norm)
 
 
 def test_pattern(width=151, min_is_black=True, show=True):
@@ -129,6 +190,7 @@ def test_pattern(width=151, min_is_black=True, show=True):
         plt.hlines(hw, -.5, width-.5)
         plt.vlines(hw, -.5, width-.5)
         plt.title("test color pattern")
+        plt.tight_layout()
         plt.show()
 
     return img
