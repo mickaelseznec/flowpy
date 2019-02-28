@@ -100,7 +100,7 @@ def make_colorwheel(transitions=None):
     return colorwheel, ncols
 
 
-def __get_polar(u, v):
+def _get_polar(u, v):
     """ Transforms a cartesian representation of the flow to a polar representation."""
 
     radius = np.sqrt(u**2 + v**2)
@@ -109,7 +109,7 @@ def __get_polar(u, v):
     return radius, angle
 
 
-def __nan_to_zero(u, v):
+def _nan_to_zero(u, v):
     """ Sets any undefined vector to 0."""
     nan_mask = np.isnan(u) | np.isnan(v)
     u[nan_mask] = 0
@@ -138,8 +138,8 @@ def flow_to_color(u, v, min_is_black=True, max_norm=None):
 
     assert u.shape == v.shape, "The shapes of u and v must be the same"
 
-    u, v = __nan_to_zero(u, v)
-    radius, angle = __get_polar(u, v)
+    u, v = _nan_to_zero(u, v)
+    radius, angle = _get_polar(u, v)
 
     if max_norm is None:
         max_norm = np.max(radius)
@@ -189,8 +189,8 @@ def show_flow_color(u, v, min_is_black=True, max_norm=None):
 def show_flow_polar(u, v):
     """ Displays flow in its polar coordinates."""
 
-    u, v = __nan_to_zero(u, v)
-    radius, angle = __get_polar(u, v)
+    u, v = _nan_to_zero(u, v)
+    radius, angle = _get_polar(u, v)
 
     plt.figure()
     plt.subplot(1, 2, 1)
