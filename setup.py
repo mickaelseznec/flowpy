@@ -9,8 +9,9 @@ setup(name='flowpy',
             license='MIT',
             packages=['flowpy'],
             install_requires=[
-                'numpy',
                 'matplotlib',
+                'numpy',
+                'pypng',
             ],
             zip_safe=False)
 
