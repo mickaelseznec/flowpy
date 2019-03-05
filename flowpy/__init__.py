@@ -190,7 +190,9 @@ def flow_to_color(u, v, min_is_black=True, max_norm=None):
 
     if max_norm is None:
         max_norm = np.max(radius)
-    radius *= (1/max_norm)
+
+    if max_norm > 0:
+        radius *= (1/max_norm)
 
     wheel, ncols = make_colorwheel()
 
