@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import png
 
+from .flowpy import *
+
 
 def _flow_write_flo(filename, u, v):
     """ Write flow in the flo format."""
@@ -98,55 +100,6 @@ def flow_read(filename, format=None):
     print("Unknown format for provided filename: " + filename)
 
 
-def make_colorwheel(transitions=None):
-    """ Creates a color wheel
-
-    Args:
-        transitions: array_like
-            Contains six transition lengths. They correspond to the following transitions:
-            Red-Yellow, Yellow-Green, Green-Cyan, Cyan-Blue, Blue-Magenta, Magenta-Red.
-            Defaults to 15, 6, 4, 11, 13, 6.
-
-    Returns:
-        colorwheel: numpy.ndarray
-            The RGB values of the transitions in the color space.
-        ncols: int
-            Total number of transitions
-    """
-
-    if transitions is None or len(transitions) != 6:
-        transitions = [15, 6, 4, 11, 13, 6]
-    ncols = sum(transitions)
-
-    colorwheel = np.zeros((ncols, 3), dtype="uint8")
-    col = 0
-
-    colorwheel[col:col+transitions[0], 0] = 255
-    colorwheel[col:col+transitions[0], 1] = np.linspace(0, 255, transitions[0], True)
-    col += transitions[0]
-
-    colorwheel[col:col+transitions[1], 0] = np.linspace(255, 0, transitions[1], True)
-    colorwheel[col:col+transitions[1], 1] = 255
-    col += transitions[1]
-
-    colorwheel[col:col+transitions[2], 1] = 255
-    colorwheel[col:col+transitions[2], 2] = np.linspace(0, 255, transitions[2], True)
-    col += transitions[2]
-
-    colorwheel[col:col+transitions[3], 1] = np.linspace(255, 0, transitions[3], True)
-    colorwheel[col:col+transitions[3], 2] = 255
-    col += transitions[3]
-
-    colorwheel[col:col+transitions[4], 0] = np.linspace(0, 255, transitions[4], True)
-    colorwheel[col:col+transitions[4], 2] = 255
-    col += transitions[4]
-
-    colorwheel[col:col+transitions[5], 0] = 255
-    colorwheel[col:col+transitions[5], 2] = np.linspace(255, 0, transitions[5], True)
-
-    return colorwheel, ncols
-
-
 def _get_polar(u, v):
     """ Transforms a cartesian representation of the flow to a polar representation."""
 
@@ -163,64 +116,6 @@ def _nan_to_zero(u, v):
     v[nan_mask] = 0
 
     return u, v
-
-
-def flow_to_color(u, v, min_is_black=True, max_norm=None):
-    """ Returns a RGB image that represents the flow field.
-
-    Args:
-        u: numpy.ndarray
-            2D image of the displacement field along the x axis
-        v: numpy.ndarray
-            2D image of the displacement field along the y axis
-        min_is_black: bool
-            Is a null vector represented as black or white?
-        max_norm: float
-            Used for normalizing vectors' norm
-
-    Returns:
-        img: numpy.ndarray
-            2d RGB image that represents the flow
-    """
-
-    assert u.shape == v.shape, "The shapes of u and v must be the same"
-
-    u, v = _nan_to_zero(u, v)
-    radius, angle = _get_polar(u, v)
-
-    if max_norm is None:
-        max_norm = np.max(radius)
-
-    if max_norm > 0:
-        radius *= (1/max_norm)
-
-    wheel, ncols = make_colorwheel()
-
-    hue_float = (-angle * (1 / np.pi) + 1) / 2 * (ncols - 1)
-    hue_fraction, hue_floor = np.modf(hue_float)
-
-    hue_floor = hue_floor.astype(int)
-    hue_ceil = (hue_floor + 1) % ncols
-
-    img = np.zeros(u.shape + (3,), dtype="uint8")
-
-    # get color interpolation between values
-    for i in range(3):
-        col_floor = wheel[hue_floor, i] / 255
-        col_ceil = wheel[hue_ceil, i] / 255
-        col_interp = (1 - hue_fraction) * col_floor + hue_fraction * col_ceil
-        mask = radius <= 1
-
-        if min_is_black:
-            col_interp[mask] = radius[mask] * col_interp[mask]
-        else:
-            col_interp[mask] = 1 - radius[mask] * (1 - col_interp[mask])
-
-        col_interp[~mask] = 0.75 * col_interp[~mask]
-        img[:, :, i] = 255 * col_interp
-
-
-    return img
 
 
 def show_flow_color(u, v, min_is_black=True, max_norm=None):
@@ -364,41 +259,3 @@ def show_flow(u, v, true_scale=False, max_norm=None, min_is_black=True, sub_fact
     show_flow_arrows(u, v, true_scale=true_scale, max_norm=max_norm,
                      min_is_black=min_is_black, sub_factors=sub_factors)
     show_flow_polar(u, v)
-
-
-def test_pattern(width=151, min_is_black=True, show=True):
-    """ Displays a test pattern
-    Args:
-        width: int
-            Radius of the square test pattern.
-        min_is_black: bool
-            Is a null vector represented as black or white?
-        show: bool
-            Displays the pattern using matplotlib
-
-    Returns:
-        img: numpy.ndarray
-            A 2D image of the test pattern.
-    """
-    truerange = 1
-    extendedrange = truerange * 1.04
-
-    hw = width // 2
-
-    x_grid, y_grid = np.mgrid[:width, :width]
-
-    u = x_grid * extendedrange / hw - extendedrange
-    v = y_grid * extendedrange / hw - extendedrange
-
-    img = flow_to_color(u / truerange, v / truerange, False, min_is_black)
-
-    if show:
-        plt.figure()
-        plt.imshow(img)
-        plt.hlines(hw, -.5, width-.5)
-        plt.vlines(hw, -.5, width-.5)
-        plt.title("test color pattern")
-        plt.tight_layout()
-        plt.show()
-
-    return img
