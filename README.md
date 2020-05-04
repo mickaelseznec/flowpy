@@ -1,7 +1,7 @@
 # flowpy
 Utilities for working with optical flows in python
 
-For .flo format documentation, please refer to [http://vision.middlebury.edu/flow/code/flow-code/](Middlebury flow code)
+For .flo format documentation, please refer to [Middlebury flow code](http://vision.middlebury.edu/flow/code/flow-code/)
 
 Most of this python package has been inspired by the cpp library above.
 
