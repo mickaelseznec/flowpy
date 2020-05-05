@@ -78,5 +78,30 @@ class FlowInputOutput(unittest.TestCase):
             os.remove(output_filename)
 
 
+class FlowDisplay(unittest.TestCase):
+    def test_flow_to_rgb(self):
+        flow = flowpy.flow_read("tests/data/Dimetrodon.flo")
+        plt.imshow(flowpy.flow_to_rgb(flow))
+        plt.show()
+
+    def test_flow_with_arrows(self):
+        flow = flowpy.flow_read("tests/data/kitti_occ_000010_10.png")
+
+        fig, ax = plt.subplots()
+        ax.imshow(flowpy.flow_to_rgb(flow))
+        flowpy.add_arrows_to_ax(ax, flow, xy_steps=(20, 20), scale=1)
+
+        plt.show()
+
+    def test_flow_quiver(self):
+        flow = flowpy.flow_read("tests/data/Dimetrodon.flo")
+
+        fig, ax = plt.subplots()
+        ax.imshow(flowpy.flow_to_rgb(flow))
+        flowpy.add_arrows_to_ax(ax, flow)
+        flowpy.format_coord(ax, flow)
+
+        plt.show()
+
 if __name__ == "__main__":
     unittest.main()

@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 
 DEFAULT_TRANSITIONS = (15, 6, 4, 11, 13, 6)
 
-def replace_nans(array, value=0):
+def _replace_nans(array, value=0):
     nan_mask = np.isnan(array)
     array[nan_mask] = value
 
@@ -52,7 +52,7 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
     flow_height, flow_width, _ = flow.shape
 
     complex_flow = flow[..., 0] + 1j * flow[..., 1]
-    complex_flow, nan_mask = replace_nans(complex_flow)
+    complex_flow, nan_mask = _replace_nans(complex_flow)
 
     radius, angle = np.abs(complex_flow), np.angle(complex_flow)
 
@@ -156,3 +156,62 @@ def calibration_pattern(width=151, **flow_to_rgb_args):
     img = flow_to_rgb(flow, **flow_to_rgb_args)
 
     return img
+
+
+def add_arrows_to_ax(ax, flow, xy_steps=(20, 20), units="xy", color="w", **kwargs):
+    """ Displays flow with arrows over its RGB representation.
+    Args:
+        flow: numpy.ndarray
+            3D image of the displacement field
+        true_scale: bool
+            Should the arrows correspond to the real distances?
+        min_is_black: bool
+            Is a null vector represented as black or white?
+        max_norm: float
+            Used for normalizing vectors' norm
+        sub_factors: int or tuple of ints
+            The subsampling factor in the arrows representation. A subsampling factor of 10
+            means an arrows every 10 pixels. If this is a tuple, a different subsampling
+            factor for every axes.
+    """
+    height, width, _ = flow.shape
+
+    y_grid, x_grid = np.mgrid[:height, :width]
+
+    step_x, step_y = xy_steps
+    half_step_x, half_step_y = step_x // 2, step_y // 2
+
+    #y-axis is reversed to match image convention
+    ax.quiver(
+        x_grid[half_step_x::step_x, half_step_y::step_y],
+        y_grid[half_step_x::step_x, half_step_y::step_y],
+        flow[half_step_x::step_x, half_step_y::step_y, 0],
+        -flow[half_step_x::step_x, half_step_y::step_y, 1],
+        units=units, color=color, **kwargs,
+    )
+
+
+def format_coord(ax, flow):
+    height, width, _ = flow.shape
+    base_format = ax.format_coord
+
+    def new_format_coord(x, y):
+        int_x = int(x + 0.5)
+        int_y = int(y + 0.5)
+
+        if 0 <= int_x < width and 0 <= int_y < height:
+            format_string = "Coord: x={}, y={} / Flow: ".format(int_x, int_y)
+
+            u, v = flow[int_y, int_x, :]
+            if np.isnan(u) or np.isnan(v):
+                format_string += "invalid"
+            else:
+                complex_flow = u - 1j * v
+                r, h = np.abs(complex_flow), np.angle(complex_flow, deg=True)
+                format_string += ("u={:.2f}, v={:.2f} (cartesian) ρ={:.2f}, θ={:.2f}° (polar)"
+                                  .format(u, v, r, h))
+            return format_string
+        else:
+            return base_format(x, y)
+
+    ax.format_coord = new_format_coord

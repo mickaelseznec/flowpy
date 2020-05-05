@@ -102,7 +102,7 @@ def _flow_read_flo(f):
     width, height = struct.unpack("II", f.read(8))
     result = np.fromfile(f, dtype="float32").reshape((height, width, 2))
 
-    # Directly set invalid flows to NaN
+    # Set invalid flows to NaN
     mask_u = np.greater(np.abs(result[..., 0]), 1e9, where=(~np.isnan(result[..., 0])))
     mask_v = np.greater(np.abs(result[..., 1]), 1e9, where=(~np.isnan(result[..., 1])))
 
@@ -112,7 +112,7 @@ def _flow_read_flo(f):
 
 
 def _flow_write_flo(f, flow):
-    SENTINEL = 1666666800.0
+    SENTINEL = 1666666800.0 # Only here to look like Middlebury original files
     height, width, _ = flow.shape
 
     image = flow.copy()
@@ -137,7 +137,7 @@ def _flow_read_png(f):
 
 
 def _flow_write_png(f, flow):
-    SENTINEL = 0.
+    SENTINEL = 0. # Only here to look like original KITTI files
     height, width, _ = flow.shape
     flow_copy = flow.copy()
 
