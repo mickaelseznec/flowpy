@@ -2,13 +2,13 @@
 import sys
 sys.path.append("flowpy")
 
-import unittest
+import filecmp
 import flowpy
 import matplotlib.pyplot as plt
-import tempfile
-import filecmp
 import numpy as np
 import os
+import tempfile
+import unittest
 
 class CalibrationPatternTestCase(unittest.TestCase):
     def test_calibration_bright(self):

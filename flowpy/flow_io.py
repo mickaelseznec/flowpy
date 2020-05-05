@@ -1,44 +1,10 @@
-import png
 import numpy as np
+import png
 import struct
 
-from sys import stderr
-from io import BufferedIOBase
 from contextlib import AbstractContextManager
 from pathlib import Path
-
-
-class FileManager(AbstractContextManager):
-    def __init__(self, abstract_file, mode):
-        self.abstract_file = abstract_file
-        self.opened_file = None
-        self.mode = mode
-
-    def __enter__(self):
-        if isinstance(self.abstract_file, str):
-            self.opened_file = open(self.abstract_file, self.mode)
-        elif isinstance(self.abstract_file, Path):
-            self.opened_file = self.abstract_file.open(self.mode)
-        else:
-            return self.abstract_file
-
-        return self.opened_file
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if self.opened_file is not None:
-            self.opened_file.close()
-
-
-def guess_extension(abstract_file, override=None):
-    if override is not None:
-        return override
-
-    if isinstance(abstract_file, str):
-        return Path(abstract_file).suffix[1:]
-    elif isinstance(abstract_file, Path):
-        return abstract_file.suffix[1:]
-
-    return Path(abstract_file.name).suffix[1:]
+from warnings import warn
 
 
 def flow_write(output_file, flow, format=None):
@@ -97,7 +63,7 @@ def flow_read(input_file, format=None):
 
 def _flow_read_flo(f):
     if (f.read(4) != b'PIEH'):
-        print("WARNING: {} does not have the flo signature", file=stderr)
+        warn("{} does not have a .flo file signature".format(f.name))
 
     width, height = struct.unpack("II", f.read(8))
     result = np.fromfile(f, dtype="float32").reshape((height, width, 2))
@@ -149,3 +115,36 @@ def _flow_write_png(f, flow):
 
     writer = png.Writer(width, height, bitdepth=16, greyscale=False)
     writer.write(f, image.reshape((height, 3 * width)))
+
+
+class FileManager(AbstractContextManager):
+    def __init__(self, abstract_file, mode):
+        self.abstract_file = abstract_file
+        self.opened_file = None
+        self.mode = mode
+
+    def __enter__(self):
+        if isinstance(self.abstract_file, str):
+            self.opened_file = open(self.abstract_file, self.mode)
+        elif isinstance(self.abstract_file, Path):
+            self.opened_file = self.abstract_file.open(self.mode)
+        else:
+            return self.abstract_file
+
+        return self.opened_file
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.opened_file is not None:
+            self.opened_file.close()
+
+
+def guess_extension(abstract_file, override=None):
+    if override is not None:
+        return override
+
+    if isinstance(abstract_file, str):
+        return Path(abstract_file).suffix[1:]
+    elif isinstance(abstract_file, Path):
+        return abstract_file.suffix[1:]
+
+    return Path(abstract_file.name).suffix[1:]

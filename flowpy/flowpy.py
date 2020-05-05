@@ -1,16 +1,10 @@
-from itertools import accumulate
 import matplotlib.pyplot as plt
 import numpy as np
+
+from itertools import accumulate
 from scipy.interpolate import interp1d
 
 DEFAULT_TRANSITIONS = (15, 6, 4, 11, 13, 6)
-
-def _replace_nans(array, value=0):
-    nan_mask = np.isnan(array)
-    array[nan_mask] = value
-
-    return array, nan_mask
-
 
 def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwheel=None):
     """ Returns a RGB image that represents the flow field.
@@ -215,3 +209,10 @@ def format_coord(ax, flow):
             return base_format(x, y)
 
     ax.format_coord = new_format_coord
+
+
+def _replace_nans(array, value=0):
+    nan_mask = np.isnan(array)
+    array[nan_mask] = value
+
+    return array, nan_mask
