@@ -5,6 +5,13 @@ from scipy.interpolate import interp1d
 
 DEFAULT_TRANSITIONS = (15, 6, 4, 11, 13, 6)
 
+def replace_nans(array, value=0):
+    nan_mask = np.isnan(array)
+    array[nan_mask] = value
+
+    return array, nan_mask
+
+
 def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwheel=None):
     """ Returns a RGB image that represents the flow field.
 
@@ -43,7 +50,10 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
     wheel = make_colorwheel() if custom_colorwheel is None else custom_colorwheel
 
     flow_height, flow_width, _ = flow.shape
+
     complex_flow = flow[..., 0] + 1j * flow[..., 1]
+    complex_flow, nan_mask = replace_nans(complex_flow)
+
     radius, angle = np.abs(complex_flow), np.angle(complex_flow)
 
     if flow_max_radius is None:
@@ -66,10 +76,12 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
     if background == "dark":
         # Mutiplying by a factor in [0, 1] plays on the Value (in HSV)
         colors = float_hue * radius.reshape((-1, 1))
+        colors[nan_mask.flatten()] = np.array([255., 255., 255.])
     else:
         # Taking the complement of the complement multiplied by a factor in [0, 1]
         # plays on the Saturation (in HSV)
         colors = 255. - radius.reshape((-1, 1)) * (255. - float_hue)
+        colors[nan_mask.flatten()] = np.array([0., 0., 0.])
 
     return colors.astype(np.uint8).reshape((flow_height, flow_width, 3))
 

@@ -3,101 +3,12 @@
     Contains multiple utilities for working with optical flow fields and manipulate .flo files
 """
 
-from struct import unpack
 
 import matplotlib.pyplot as plt
 import numpy as np
-import png
 
 from .flowpy import *
-
-
-def _flow_write_flo(filename, u, v):
-    """ Write flow in the flo format."""
-
-    with open(filename, "wb") as f:
-        f.write(b'PIEH')
-        np.flip(u.shape).astype("uint32").tofile(f)
-        np.stack((u, v), axis=-1).flatten().astype("float32").tofile(f)
-
-
-def _flow_write_png(filename, u, v):
-    """ Write flow in the png format."""
-
-    with open(filename, "wb") as f:
-        height, width = u.shape
-        writer = png.Writer(width, height, bitdepth=16)
-        img = (np.stack((u, v, np.zeros_like(u)), axis=-1) * 64 + 2 ** 15).astype("uint16")
-        writer.write(f, img.reshape((-1, 3*width)))
-
-
-def flow_write(filename, u, v, format=None):
-    """ Writes an optical flow field to a flo file on disk
-
-    Args:
-        filename: str
-            Relative path to the file to write
-        u: array_like
-            2D image of the displacement field along the x axis
-        v: array_like
-            2D image of the displacement field along the y axis
-        format: str
-            In what format the flow is read, accepted formats: "png" or "flo"
-            If None, guess on the file extension
-    """
-
-    assert u.shape == v.shape, "The shapes of u and v must be the same"
-
-    if format=="flo" or filename.endswith(".flo"):
-        return _flow_write_flo(filename, u, v)
-    elif format=="png" or filename.endswith(".png"):
-        return _flow_write_png(filename, u, v)
-
-    print("Unknown format for provided filename: " + filename)
-
-
-def _flow_read_flo(filename):
-    """ Reads a flow field from a file in the flo format."""
-
-    with open(filename, 'rb') as f:
-        assert f.read(4) == b'PIEH', filename + " does not seem to be a flo file."
-        ny, nx = unpack("II", f.read(8))
-        result = np.fromfile(f, dtype="float32").reshape((nx, ny, 2))
-    result[np.abs(result) > 1e9] = np.NaN
-
-    return result[:, :, 0], result[:, :, 1]
-
-
-def _flow_read_png(filename):
-    width, height, stream, *_ = png.Reader(filename).read()
-    u, v, _ = np.vstack(stream).reshape((height, width, -1)).transpose((2, 0, 1))
-
-    return ((u.astype(np.float32) - 2 ** 15) / 64.,
-            (v.astype(np.float32) - 2 ** 15) / 64.)
-
-
-def flow_read(filename, format=None):
-    """ Reads a flow field from a file in the .flo format
-
-    Args:
-        filename: str
-            Relative path to the file to read
-
-    Returns:
-        u: numpy.ndarray
-            2D image of the displacement field along the x axis
-        v: numpy.ndarray
-            2D image of the displacement field along the y axis
-        format: str
-            In what format the flow is written, accepted formats: "png" or "flo"
-            If None, guess on the file extension
-    """
-    if format=="flo" or filename.endswith(".flo"):
-        return _flow_read_flo(filename)
-    elif format=="png" or filename.endswith(".png"):
-        return _flow_read_png(filename)
-
-    print("Unknown format for provided filename: " + filename)
+from .flow_io import flow_read, flow_write
 
 
 def _get_polar(u, v):
@@ -107,15 +18,6 @@ def _get_polar(u, v):
     angle = np.arctan2(-v, u)
 
     return radius, angle
-
-
-def _nan_to_zero(u, v):
-    """ Sets any undefined vector to 0."""
-    nan_mask = np.isnan(u) | np.isnan(v)
-    u[nan_mask] = 0
-    v[nan_mask] = 0
-
-    return u, v
 
 
 def show_flow_color(u, v, min_is_black=True, max_norm=None):
