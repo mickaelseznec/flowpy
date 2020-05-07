@@ -40,7 +40,7 @@ This is the simplest example of how to use flowpy:
     plt.show()
 ```
 
-[simple_example]
+![simple_example]
 
 ### Plotting arrows, showing flow values and a calibration pattern
 
@@ -69,7 +69,7 @@ Flowpy comes with more than just RGB plots, the main features here are:
     plt.show()
 ```
 
-[complex_example]
+![complex_example]
 
 ### More
 
