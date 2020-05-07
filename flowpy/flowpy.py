@@ -4,7 +4,6 @@ import numpy as np
 from collections import namedtuple
 from itertools import accumulate
 from matplotlib.ticker import AutoMinorLocator
-from scipy.interpolate import interp1d
 
 DEFAULT_TRANSITIONS = (15, 6, 4, 11, 13, 6)
 
@@ -68,21 +67,22 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
     # Map the angles from (-pi, pi] to [0, ncols - 1)
     angle = (-angle + np.pi) * ((ncols - 1) / (2 * np.pi))
 
-    color_interpoler = interp1d(np.arange(ncols), wheel, axis=0)
-
-    float_hue = color_interpoler(angle.flatten())
-    radius = radius.reshape((-1, 1))
+    # Interpolate the hues
+    (angle_fractional, angle_floor), angle_ceil = np.modf(angle), np.ceil(angle)
+    angle_fractional = angle_fractional.reshape((angle_fractional.shape) + (1,))
+    float_hue = (wheel[angle_floor.astype(np.int)] * (1 - angle_fractional) +
+                 wheel[angle_ceil.astype(np.int)] * angle_fractional)
 
     ColorizationArgs = namedtuple("ColorizationArgs", [
         'move_hue_valid_radius',
         'move_hue_oversized_radius',
         'invalid_color'])
 
-    def move_hue_on_V_axis(hue, factor):
-        return hue * factor
+    def move_hue_on_V_axis(hues, factors):
+        return hues * np.expand_dims(factors, -1)
 
-    def move_hue_on_S_axis(hue, factor):
-        return 255. - factor * (255. - hue)
+    def move_hue_on_S_axis(hues, factors):
+        return 255. - np.expand_dims(factors, -1) * (255. - hues)
 
     if background == "dark":
         parameters = ColorizationArgs(move_hue_on_V_axis, move_hue_on_S_axis,
@@ -93,14 +93,14 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
 
     colors = parameters.move_hue_valid_radius(float_hue, radius)
 
-    oversized_radius_mask = radius.flatten() > 1
+    oversized_radius_mask = radius > 1
     colors[oversized_radius_mask] = parameters.move_hue_oversized_radius(
         float_hue[oversized_radius_mask],
         1 / radius[oversized_radius_mask]
     )
-    colors[nan_mask.flatten()] = parameters.invalid_color
+    colors[nan_mask] = parameters.invalid_color
 
-    return colors.astype(np.uint8).reshape((flow_height, flow_width, 3))
+    return colors.astype(np.uint8)
 
 
 def make_colorwheel(transitions=DEFAULT_TRANSITIONS):

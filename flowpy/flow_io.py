@@ -2,7 +2,6 @@ import numpy as np
 import png
 import struct
 
-from contextlib import AbstractContextManager
 from pathlib import Path
 from warnings import warn
 
@@ -145,7 +144,7 @@ def flow_write_png(f, flow):
     writer.write(f, image.reshape((height, 3 * width)))
 
 
-class FileManager(AbstractContextManager):
+class FileManager:
     def __init__(self, abstract_file, mode):
         self.abstract_file = abstract_file
         self.opened_file = None

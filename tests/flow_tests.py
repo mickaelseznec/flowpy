@@ -7,7 +7,6 @@ import sys
 import tempfile
 import unittest
 
-sys.path.append("flowpy")
 import flowpy
 
 
