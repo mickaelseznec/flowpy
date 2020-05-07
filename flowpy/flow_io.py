@@ -8,18 +8,25 @@ from warnings import warn
 
 
 def flow_write(output_file, flow, format=None):
-    """ Writes an optical flow field to a flo file on disk
+    """
+    Writes optical flow to file.
 
-    Args:
-        output_file: {str, pathlib.Path, file}
-            Relative path to the file to write
-        u: array_like
-            2D image of the displacement field along the x axis
-        v: array_like
-            2D image of the displacement field along the y axis
-        format: str
-            In what format the flow is read, accepted formats: "png" or "flo"
-            If None, guess on the file extension
+    Parameters
+    ----------
+    output_file: {str, pathlib.Path, file}
+        Path of the file to write or file object.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    format: str, optional
+        Specify in what format the flow is written, accepted formats: "png" or "flo"
+        If None, it is guessed on the file extension
+
+    See Also
+    --------
+    flow_read
+
     """
 
     supported_formats = ("png", "flo")
@@ -28,40 +35,61 @@ def flow_write(output_file, flow, format=None):
 
     with FileManager(output_file, "wb") as f:
         if output_format == "png":
-            _flow_write_png(f, flow)
+            flow_write_png(f, flow)
         else:
-            _flow_write_flo(f, flow)
+            flow_write_flo(f, flow)
 
 
 def flow_read(input_file, format=None):
-    """ Reads a flow field from a file in the .flo format
+    """
+    Reads optical flow from file
 
-    Args:
-        input_file: str
-            Relative path to the file to read
+    Parameters
+    ----------
+    output_file: {str, pathlib.Path, file}
+        Path of the file to read or file object.
+    format: str, optional
+        Specify in what format the flow is raed, accepted formats: "png" or "flo"
+        If None, it is guess on the file extension
 
-    Returns:
-        u: numpy.ndarray
-            2D image of the displacement field along the x axis
-        v: numpy.ndarray
-            2D image of the displacement field along the y axis
-        format: str
-            In what format the flow is written, accepted formats: "png" or "flo"
-            If None, guess on the file extension
+    Returns
+    -------
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] is the x-displacement
+        flow[..., 1] is the y-displacement
+
+    Notes
+    -----
+
+    The flo format is dedicated to optical flow and was first used in Middlebury optical flow database.
+    The original defition can be found here: http://vision.middlebury.edu/flow/code/flow-code/flowIO.cpp
+
+    The png format uses 16-bit RGB png to store optical flows.
+    It was developped along with the KITTI Vision Benchmark Suite.
+    More information can be found here: http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=flow
+
+    The both handle flow with invalid ``invalid'' values, to deal with occlusion for example.
+    We convert such invalid values to NaN.
+
+    See Also
+    --------
+    flow_write
+
     """
 
     input_format = guess_extension(input_file, override=format)
 
     with FileManager(input_file, "rb") as f:
         if input_format == "png":
-            output = _flow_read_png(f)
+            output = flow_read_png(f)
         else:
-            output = _flow_read_flo(f)
+            output = flow_read_flo(f)
 
     return output
 
 
-def _flow_read_flo(f):
+def flow_read_flo(f):
     if (f.read(4) != b'PIEH'):
         warn("{} does not have a .flo file signature".format(f.name))
 
@@ -77,8 +105,8 @@ def _flow_read_flo(f):
     return result
 
 
-def _flow_write_flo(f, flow):
-    SENTINEL = 1666666800.0 # Only here to look like Middlebury original files
+def flow_write_flo(f, flow):
+    SENTINEL = 1666666800.0  # Only here to look like Middlebury original files
     height, width, _ = flow.shape
 
     image = flow.copy()
@@ -89,7 +117,7 @@ def _flow_write_flo(f, flow):
     image.astype(np.float32).tofile(f)
 
 
-def _flow_read_png(f):
+def flow_read_png(f):
     width, height, stream, *_ = png.Reader(f).read()
 
     file_content = np.concatenate(list(stream)).reshape((height, width, 3))
@@ -102,8 +130,8 @@ def _flow_read_png(f):
     return flow
 
 
-def _flow_write_png(f, flow):
-    SENTINEL = 0. # Only here to look like original KITTI files
+def flow_write_png(f, flow):
+    SENTINEL = 0.  # Only here to look like original KITTI files
     height, width, _ = flow.shape
     flow_copy = flow.copy()
 

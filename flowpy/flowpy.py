@@ -8,38 +8,39 @@ from scipy.interpolate import interp1d
 
 DEFAULT_TRANSITIONS = (15, 6, 4, 11, 13, 6)
 
-def get_flow_max_radius(flow):
-    return np.sqrt(np.nanmax(np.sum(flow ** 2, axis=2)))
-
 
 def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwheel=None):
-    """ Returns a RGB image that represents the flow field.
+    """
+    Creates a RGB representation of an optical flow.
 
-    Args:
-        flow: numpy.ndarray
-            Displacement array in the HWD format, where D stands for the direction of the flow.
-            flow[..., 0] must contain the x-displacement
-            flow[..., 1] must contain the y-displacement
+    Parameters
+    ----------
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
 
-        background: str
-            States if zero-valued flow should look 'bright' or 'dark'
+    flow_max_radius: float, optionnal
+        Set the radius that gives the maximum color intensity, useful for comparing different flows.
+        Default: The normalization is based on the input flow maximum radius.
 
-        flow_max_radius: float
-            Set the radius that gives the maximum color intensity.
-            Useful for comparing different flows.
-            Clip the input flow whose radius is bigger than the provided value.
+    background: str, optionnal
+        States if zero-valued flow should look 'bright' or 'dark'
+        Default: "bright"
 
-            By default, no clipping is performed and the normalization is based
-            on the flow maximum radius.
+    custom_colorwheel: numpy.ndarray
+        Use a custom colorwheel for specific hue transition lengths.
+        By default, the default transition lengths are used.
 
-        custom_colorwheel: numpy.ndarray
-            Use a custom colorwheel to change the hue transitions.
-            By default, the default transitions are used.
-            See: make_colorwheel
+    Returns
+    -------
+    rgb_image: numpy.ndarray
+        A 2D RGB image that represents the flow
 
-    Returns:
-        img: numpy.ndarray
-            A 2D RGB image that represents the flow
+    See Also
+    --------
+    make_colorwheel
+
     """
 
     valid_backgrounds = ("bright", "dark")
@@ -52,7 +53,7 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
     flow_height, flow_width, _ = flow.shape
 
     complex_flow = flow[..., 0] + 1j * flow[..., 1]
-    complex_flow, nan_mask = _replace_nans(complex_flow)
+    complex_flow, nan_mask = replace_nans(complex_flow)
 
     radius, angle = np.abs(complex_flow), np.angle(complex_flow)
 
@@ -77,8 +78,11 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
         'move_hue_oversized_radius',
         'invalid_color'])
 
-    move_hue_on_V_axis = lambda hue, factor: hue * factor
-    move_hue_on_S_axis = lambda hue, factor: 255. - factor * (255. - hue)
+    def move_hue_on_V_axis(hue, factor):
+        return hue * factor
+
+    def move_hue_on_S_axis(hue, factor):
+        return 255. - factor * (255. - hue)
 
     if background == "dark":
         parameters = ColorizationArgs(move_hue_on_V_axis, move_hue_on_S_axis,
@@ -100,19 +104,28 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
 
 
 def make_colorwheel(transitions=DEFAULT_TRANSITIONS):
-    """ Creates the color wheel.
+    """
+    Creates a color wheel.
 
-    Think of it as a circular buffer. On each index of the circular buffer lies a RGB value giving the hue.
-    It is generated as linear interpolation between 6 primitives hues (here stated with their RGB values): Red(255, 0, 0), Yellow(255, 255, 0), Green(0, 255, 0), Cyan(0, 255, 255), Blue(0, 0, 255) and Magenta(255, 0, 255).
+    A color wheel defines the transitions between the six primary hues:
+    Red(255, 0, 0), Yellow(255, 255, 0), Green(0, 255, 0), Cyan(0, 255, 255), Blue(0, 0, 255) and Magenta(255, 0, 255).
 
-    Args:
-        transitions: sequence_like
-            Contains the length of the six transitions.
-            Defaults to (15, 6, 4, 11, 13, 6), based on humain perception.
+    Parameters
+    ----------
+    transitions: sequence_like
+        Contains the length of the six transitions.
+        Defaults to (15, 6, 4, 11, 13, 6), based on humain perception.
 
-    Returns:
-        colorwheel: numpy.ndarray
-            The RGB values of the transitions in the color space.
+    Returns
+    -------
+    colorwheel: numpy.ndarray
+        The RGB values of the transitions in the color space.
+
+    Notes
+    -----
+    For more information, take a look at
+    https://web.archive.org/web/20051107102013/http://members.shaw.ca/quadibloc/other/colint.htm
+
     """
 
     colorwheel_length = sum(transitions)
@@ -138,19 +151,27 @@ def make_colorwheel(transitions=DEFAULT_TRANSITIONS):
 
 
 def calibration_pattern(pixel_size=151, flow_max_radius=1, **flow_to_rgb_args):
-    """ Generates a test pattern.
+    """
+    Generates a calibration pattern.
 
-    Useful to add a legend to your graphs.
+    Useful to add a legend to your optical flow plots.
 
-    Args:
-        pixel_size: int
-            Radius of the square test pattern.
-        flow_to_rgb_args: kwargs
-            Arguments passed to the flow_to_rgb function
+    Parameters
+    ----------
+    pixel_size: int
+        Radius of the square test pattern.
+    flow_max_radius: float
+        The maximum radius value represented by the calibration pattern.
+    flow_to_rgb_args: kwargs
+        Arguments passed to the flow_to_rgb function
 
-    Returns:
-        img: numpy.ndarray
-            A 2D image of the test pattern.
+    Returns
+    -------
+    calibration_img: numpy.ndarray
+        The RGB image representation of the calibration pattern.
+    calibration_flow: numpy.ndarray
+        The flow represented in the calibration_pattern. In HWF layout
+
     """
     half_width = pixel_size // 2
 
@@ -169,21 +190,35 @@ def calibration_pattern(pixel_size=151, flow_max_radius=1, **flow_to_rgb_args):
     return img, flow
 
 
-def attach_arrows(ax, flow, xy_steps=(20, 20), units="xy", color="w", **kwargs):
-    """ Displays flow with arrows over its RGB representation.
-    Args:
-        flow: numpy.ndarray
-            3D image of the displacement field
-        true_scale: bool
-            Should the arrows correspond to the real distances?
-        min_is_black: bool
-            Is a null vector represented as black or white?
-        max_norm: float
-            Used for normalizing vectors' norm
-        sub_factors: int or tuple of ints
-            The subsampling factor in the arrows representation. A subsampling factor of 10
-            means an arrows every 10 pixels. If this is a tuple, a different subsampling
-            factor for every axes.
+def attach_arrows(ax, flow, xy_steps=(20, 20),
+                  units="xy", color="w", angles="xy", **quiver_kwargs):
+    """
+    Attach the flow arrows to a matplotlib axes using quiver.
+
+    Parameters:
+    -----------
+    ax: matplotlib.axes
+        The axes the arrows should be plotted on.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    xy_steps: sequence_like
+        The arrows are plotted every xy_steps[0] in the x-dimension and xy_steps[1] in the y-dimension
+
+    Quiver Parameters:
+    ------------------
+    The following parameters are here to override matplotlib.quiver's defaults.
+    units: str
+        See matplotlib.quiver documentation.
+    color: str
+        See matplotlib.quiver documentation.
+    angles: str
+        See matplotlib.quiver documentation.
+    quiver_kwargs: kwargs
+        Other parameters passed to matplotlib.quiver
+        See matplotlib.quiver documentation.
+
     """
     height, width, _ = flow.shape
 
@@ -192,20 +227,39 @@ def attach_arrows(ax, flow, xy_steps=(20, 20), units="xy", color="w", **kwargs):
     step_x, step_y = xy_steps
     half_step_x, half_step_y = step_x // 2, step_y // 2
 
-    #y-axis is reversed to match image convention
     ax.quiver(
         x_grid[half_step_x::step_x, half_step_y::step_y],
         y_grid[half_step_x::step_x, half_step_y::step_y],
         flow[half_step_x::step_x, half_step_y::step_y, 0],
-        -flow[half_step_x::step_x, half_step_y::step_y, 1],
-        units=units, color=color, **kwargs,
+        flow[half_step_x::step_x, half_step_y::step_y, 1],
+        angles=angles,
+        units=units, color=color, **quiver_kwargs,
     )
 
 
 def attach_coord(ax, flow, extent=None):
+    """
+    Attach the flow value to the coordinate tooltip.
+
+    It allows you to see on the same figure, the RGB value of the pixel and the underlying value of the flow.
+    Shows cartesian and polar coordinates.
+
+    Parameters:
+    -----------
+    ax: matplotlib.axes
+        The axes the arrows should be plotted on.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    extent: sequence_like, optional
+        Use this parameters in combination with matplotlib.imshow to resize the RGB plot.
+        See matplotlib.imshow extent parameter.
+        See attach_calibration_pattern
+
+    """
     height, width, _ = flow.shape
     base_format = ax.format_coord
-
     if extent is not None:
         left, right, bottom, top = extent
         x_ratio = width / (right - left)
@@ -218,7 +272,6 @@ def attach_coord(ax, flow, extent=None):
         else:
             int_x = int((x - left) * x_ratio)
             int_y = int((y - bottom) * y_ratio)
-
 
         if 0 <= int_x < width and 0 <= int_y < height:
             format_string = "Coord: x={}, y={} / Flow: ".format(int_x, int_y)
@@ -238,9 +291,24 @@ def attach_coord(ax, flow, extent=None):
     ax.format_coord = new_format_coord
 
 
-def attach_calibration_pattern(ax, **calibration_pattern_args):
-    pattern, flow = calibration_pattern(**calibration_pattern_args)
-    flow_max_radius = calibration_pattern_args.get("flow_max_radius", 1)
+def attach_calibration_pattern(ax, **calibration_pattern_kwargs):
+    """
+    Attach a calibration pattern to axes.
+
+    This function uses calibration_pattern to generate a figure and shows it as nicely as possible.
+
+    Parameters:
+    -----------
+    calibration_pattern_kwargs: kwargs, optional
+        Parameters to be given to the calibration_pattern function.
+
+    See Also:
+    ---------
+    calibration_pattern
+
+    """
+    pattern, flow = calibration_pattern(**calibration_pattern_kwargs)
+    flow_max_radius = calibration_pattern_kwargs.get("flow_max_radius", 1)
 
     extent = (-flow_max_radius, flow_max_radius) * 2
 
@@ -261,8 +329,12 @@ def attach_calibration_pattern(ax, **calibration_pattern_args):
     ax.add_artist(circle)
 
 
-def _replace_nans(array, value=0):
+def replace_nans(array, value=0):
     nan_mask = np.isnan(array)
     array[nan_mask] = value
 
     return array, nan_mask
+
+
+def get_flow_max_radius(flow):
+    return np.sqrt(np.nanmax(np.sum(flow ** 2, axis=2)))

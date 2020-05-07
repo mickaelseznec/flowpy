@@ -1,6 +1,6 @@
 """ flowpy
 
-    Contains multiple utilities for working with optical flow fields and manipulate .flo files
+    Contains some utilities for working with optical flows and manipulate associated reference file formats.
 """
 
 from .flowpy import (flow_to_rgb, make_colorwheel, calibration_pattern,
