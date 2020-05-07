@@ -4,5 +4,6 @@
 """
 
 from .flowpy import (flow_to_rgb, make_colorwheel, calibration_pattern,
-                     add_arrows_to_ax, format_coord)
+                     attach_arrows, attach_coord, attach_calibration_pattern,
+                     get_flow_max_radius)
 from .flow_io import flow_read, flow_write

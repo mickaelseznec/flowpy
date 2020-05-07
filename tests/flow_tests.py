@@ -12,23 +12,29 @@ import unittest
 
 class CalibrationPatternTestCase(unittest.TestCase):
     def test_calibration_bright(self):
-        width = 255
-        mid_width = width // 2
-        pattern = flowpy.calibration_pattern(width, background="bright")
+        fig, ax = plt.subplots()
+        _, flow = flowpy.calibration_pattern()
+
+        flowpy.attach_calibration_pattern(
+            ax, pixel_size=255, flow_max_radius=5, background="bright"
+        )
+
+        ax.set_title("Calibration Pattern (Bright)")
+
+        plt.show()
+
+    def test_calibration_with_arrows(self):
+        pattern, flow = flowpy.calibration_pattern()
 
         fig, ax = plt.subplots()
         ax.imshow(pattern)
-        ax.hlines(mid_width, -.5, width-.5)
-        ax.vlines(mid_width, -.5, width-.5)
-        circle = plt.Circle((mid_width, mid_width), mid_width, fill=False)
-        ax.add_artist(circle)
-        ax.set_title("Calibration Pattern (Bright)")
+        flowpy.attach_arrows(ax, flow)
         plt.show()
 
     def test_calibration_dark(self):
         width = 255
         mid_width = width // 2
-        pattern = flowpy.calibration_pattern(width, background="dark")
+        pattern, _ = flowpy.calibration_pattern(width, background="dark")
 
         fig, ax = plt.subplots()
         ax.imshow(pattern)
@@ -89,17 +95,35 @@ class FlowDisplay(unittest.TestCase):
 
         fig, ax = plt.subplots()
         ax.imshow(flowpy.flow_to_rgb(flow))
-        flowpy.add_arrows_to_ax(ax, flow, xy_steps=(20, 20), scale=1)
+        flowpy.attach_arrows(ax, flow, xy_steps=(20, 20), scale=1)
 
         plt.show()
 
-    def test_flow_quiver(self):
+    def test_flow_arrows_and_coord(self):
         flow = flowpy.flow_read("tests/data/Dimetrodon.flo")
 
         fig, ax = plt.subplots()
         ax.imshow(flowpy.flow_to_rgb(flow))
-        flowpy.add_arrows_to_ax(ax, flow)
-        flowpy.format_coord(ax, flow)
+        flowpy.attach_arrows(ax, flow)
+        flowpy.attach_coord(ax, flow)
+
+        plt.show()
+
+    def test_flow_arrows_coord_and_calibration_pattern(self):
+        flow = flowpy.flow_read("tests/data/Dimetrodon.flo")
+        height, width, _ = flow.shape
+        image_ratio = height / width
+
+        max_radius = flowpy.get_flow_max_radius(flow)
+
+        fig, (ax_1, ax_2) = plt.subplots(1, 2,
+                                         gridspec_kw={"width_ratios": [1, image_ratio]})
+
+        ax_1.imshow(flowpy.flow_to_rgb(flow))
+        flowpy.attach_arrows(ax_1, flow)
+        flowpy.attach_coord(ax_1, flow)
+
+        flowpy.attach_calibration_pattern(ax_2, flow_max_radius=max_radius)
 
         plt.show()
 
