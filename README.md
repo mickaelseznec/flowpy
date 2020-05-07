@@ -80,4 +80,4 @@ Most of the visualization and io handling has be translated from matlab and c fr
 I would like to thank Simon Baker, Daniel Scharste, J. P. Lewis, Stefan Roth, Michael J. Blackand Richard Szeliski.
 
 [simple_example]: https://github.com/mickaelseznec/flowpy/raw/master/static/example_0.png "Displaying an optical flow as an RGB image"
-[complex example]: https://github.com/mickaelseznec/flowpy/raw/master/static/example_1.png "Displaying an optical flow as an RGB image with arrows, tooltip and legend"
+[complex_example]: https://github.com/mickaelseznec/flowpy/raw/master/static/example_1.png "Displaying an optical flow as an RGB image with arrows, tooltip and legend"
