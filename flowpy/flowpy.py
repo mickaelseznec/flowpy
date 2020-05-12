@@ -219,6 +219,12 @@ def attach_arrows(ax, flow, xy_steps=(20, 20),
         Other parameters passed to matplotlib.quiver
         See matplotlib.quiver documentation.
 
+    Returns
+    -------
+    quiver_artist: matplotlib.artist
+        See matplotlib.quiver documentation
+        Useful for removing the arrows from the figure
+
     """
     height, width, _ = flow.shape
 
@@ -227,7 +233,7 @@ def attach_arrows(ax, flow, xy_steps=(20, 20),
     step_x, step_y = xy_steps
     half_step_x, half_step_y = step_x // 2, step_y // 2
 
-    ax.quiver(
+    return ax.quiver(
         x_grid[half_step_x::step_x, half_step_y::step_y],
         y_grid[half_step_x::step_x, half_step_y::step_y],
         flow[half_step_x::step_x, half_step_y::step_y, 0],
@@ -306,13 +312,22 @@ def attach_calibration_pattern(ax, **calibration_pattern_kwargs):
     ---------
     calibration_pattern
 
+    Returns
+    -------
+    image_axes: matplotlib.AxesImage
+        See matplotlib.imshow documentation
+        Useful for changing the image dynamically
+    circle_artist: matplotlib.artist
+        See matplotlib.circle documentation
+        Useful for removing the circle from the figure
+
     """
     pattern, flow = calibration_pattern(**calibration_pattern_kwargs)
     flow_max_radius = calibration_pattern_kwargs.get("flow_max_radius", 1)
 
     extent = (-flow_max_radius, flow_max_radius) * 2
 
-    ax.imshow(pattern, extent=extent)
+    image = ax.imshow(pattern, extent=extent)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
@@ -327,6 +342,8 @@ def attach_calibration_pattern(ax, **calibration_pattern_kwargs):
 
     circle = plt.Circle((0, 0), flow_max_radius, fill=False, lw=1)
     ax.add_artist(circle)
+
+    return image, circle
 
 
 def replace_nans(array, value=0):
