@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>flowpy.flow_io API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>flowpy.flow_io</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import numpy as np
+import png
+import struct
+
+from pathlib import Path
+from warnings import warn
+
+
+def flow_write(output_file, flow, format=None):
+    &#34;&#34;&#34;
+    Writes optical flow to file.
+
+    Parameters
+    ----------
+    output_file: {str, pathlib.Path, file}
+        Path of the file to write or file object.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    format: str, optional
+        Specify in what format the flow is written, accepted formats: &#34;png&#34; or &#34;flo&#34;
+        If None, it is guessed on the file extension
+
+    See Also
+    --------
+    flow_read
+
+    &#34;&#34;&#34;
+
+    supported_formats = (&#34;png&#34;, &#34;flo&#34;)
+
+    output_format = guess_extension(output_file, override=format)
+
+    with FileManager(output_file, &#34;wb&#34;) as f:
+        if output_format == &#34;png&#34;:
+            flow_write_png(f, flow)
+        else:
+            flow_write_flo(f, flow)
+
+
+def flow_read(input_file, format=None):
+    &#34;&#34;&#34;
+    Reads optical flow from file
+
+    Parameters
+    ----------
+    output_file: {str, pathlib.Path, file}
+        Path of the file to read or file object.
+    format: str, optional
+        Specify in what format the flow is raed, accepted formats: &#34;png&#34; or &#34;flo&#34;
+        If None, it is guess on the file extension
+
+    Returns
+    -------
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] is the x-displacement
+        flow[..., 1] is the y-displacement
+
+    Notes
+    -----
+
+    The flo format is dedicated to optical flow and was first used in Middlebury optical flow database.
+    The original defition can be found here: http://vision.middlebury.edu/flow/code/flow-code/flowIO.cpp
+
+    The png format uses 16-bit RGB png to store optical flows.
+    It was developped along with the KITTI Vision Benchmark Suite.
+    More information can be found here: http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=flow
+
+    The both handle flow with invalid ``invalid&#39;&#39; values, to deal with occlusion for example.
+    We convert such invalid values to NaN.
+
+    See Also
+    --------
+    flow_write
+
+    &#34;&#34;&#34;
+
+    input_format = guess_extension(input_file, override=format)
+
+    with FileManager(input_file, &#34;rb&#34;) as f:
+        if input_format == &#34;png&#34;:
+            output = flow_read_png(f)
+        else:
+            output = flow_read_flo(f)
+
+    return output
+
+
+def flow_read_flo(f):
+    if (f.read(4) != b&#39;PIEH&#39;):
+        warn(&#34;{} does not have a .flo file signature&#34;.format(f.name))
+
+    width, height = struct.unpack(&#34;II&#34;, f.read(8))
+    result = np.fromfile(f, dtype=&#34;float32&#34;).reshape((height, width, 2))
+
+    # Set invalid flows to NaN
+    mask_u = np.greater(np.abs(result[..., 0]), 1e9, where=(~np.isnan(result[..., 0])))
+    mask_v = np.greater(np.abs(result[..., 1]), 1e9, where=(~np.isnan(result[..., 1])))
+
+    result[mask_u | mask_v] = np.NaN
+
+    return result
+
+
+def flow_write_flo(f, flow):
+    SENTINEL = 1666666800.0  # Only here to look like Middlebury original files
+    height, width, _ = flow.shape
+
+    image = flow.copy()
+    image[np.isnan(image)] = SENTINEL
+
+    f.write(b&#39;PIEH&#39;)
+    f.write(struct.pack(&#34;II&#34;, width, height))
+    image.astype(np.float32).tofile(f)
+
+
+def flow_read_png(f):
+    width, height, stream, *_ = png.Reader(f).read()
+
+    file_content = np.concatenate(list(stream)).reshape((height, width, 3))
+    flow, valid = file_content[..., 0:2], file_content[..., 2]
+
+    flow = (flow.astype(np.float) - 2 ** 15) / 64.
+
+    flow[~valid.astype(np.bool)] = np.NaN
+
+    return flow
+
+
+def flow_write_png(f, flow):
+    SENTINEL = 0.  # Only here to look like original KITTI files
+    height, width, _ = flow.shape
+    flow_copy = flow.copy()
+
+    valid = ~(np.isnan(flow[..., 0]) | np.isnan(flow[..., 1]))
+    flow_copy[~valid] = SENTINEL
+
+    flow_copy = (flow_copy * 64. + 2 ** 15).astype(np.uint16)
+    image = np.dstack((flow_copy, valid))
+
+    writer = png.Writer(width, height, bitdepth=16, greyscale=False)
+    writer.write(f, image.reshape((height, 3 * width)))
+
+
+class FileManager:
+    def __init__(self, abstract_file, mode):
+        self.abstract_file = abstract_file
+        self.opened_file = None
+        self.mode = mode
+
+    def __enter__(self):
+        if isinstance(self.abstract_file, str):
+            self.opened_file = open(self.abstract_file, self.mode)
+        elif isinstance(self.abstract_file, Path):
+            self.opened_file = self.abstract_file.open(self.mode)
+        else:
+            return self.abstract_file
+
+        return self.opened_file
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.opened_file is not None:
+            self.opened_file.close()
+
+
+def guess_extension(abstract_file, override=None):
+    if override is not None:
+        return override
+
+    if isinstance(abstract_file, str):
+        return Path(abstract_file).suffix[1:]
+    elif isinstance(abstract_file, Path):
+        return abstract_file.suffix[1:]
+
+    return Path(abstract_file.name).suffix[1:]</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="flowpy.flow_io.flow_read"><code class="name flex">
+<span>def <span class="ident">flow_read</span></span>(<span>input_file, format=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads optical flow from file</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>output_file</code></strong> :&ensp;<code>{str, pathlib.Path, file}</code></dt>
+<dd>Path of the file to read or file object.</dd>
+<dt><strong><code>format</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Specify in what format the flow is raed, accepted formats: "png" or "flo"
+If None, it is guess on the file extension</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>flow</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>3D flow in the HWF (Height, Width, Flow) layout.
+flow[&hellip;, 0] is the x-displacement
+flow[&hellip;, 1] is the y-displacement</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>The flo format is dedicated to optical flow and was first used in Middlebury optical flow database.
+The original defition can be found here: <a href="http://vision.middlebury.edu/flow/code/flow-code/flowIO.cpp">http://vision.middlebury.edu/flow/code/flow-code/flowIO.cpp</a></p>
+<p>The png format uses 16-bit RGB png to store optical flows.
+It was developped along with the KITTI Vision Benchmark Suite.
+More information can be found here: <a href="http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=flow">http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=flow</a></p>
+<p>The both handle flow with invalid ``invalid'' values, to deal with occlusion for example.
+We convert such invalid values to NaN.</p>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="flowpy.flow_io.flow_write" href="#flowpy.flow_io.flow_write">flow_write()</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flow_read(input_file, format=None):
+    &#34;&#34;&#34;
+    Reads optical flow from file
+
+    Parameters
+    ----------
+    output_file: {str, pathlib.Path, file}
+        Path of the file to read or file object.
+    format: str, optional
+        Specify in what format the flow is raed, accepted formats: &#34;png&#34; or &#34;flo&#34;
+        If None, it is guess on the file extension
+
+    Returns
+    -------
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] is the x-displacement
+        flow[..., 1] is the y-displacement
+
+    Notes
+    -----
+
+    The flo format is dedicated to optical flow and was first used in Middlebury optical flow database.
+    The original defition can be found here: http://vision.middlebury.edu/flow/code/flow-code/flowIO.cpp
+
+    The png format uses 16-bit RGB png to store optical flows.
+    It was developped along with the KITTI Vision Benchmark Suite.
+    More information can be found here: http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=flow
+
+    The both handle flow with invalid ``invalid&#39;&#39; values, to deal with occlusion for example.
+    We convert such invalid values to NaN.
+
+    See Also
+    --------
+    flow_write
+
+    &#34;&#34;&#34;
+
+    input_format = guess_extension(input_file, override=format)
+
+    with FileManager(input_file, &#34;rb&#34;) as f:
+        if input_format == &#34;png&#34;:
+            output = flow_read_png(f)
+        else:
+            output = flow_read_flo(f)
+
+    return output</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flow_io.flow_read_flo"><code class="name flex">
+<span>def <span class="ident">flow_read_flo</span></span>(<span>f)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flow_read_flo(f):
+    if (f.read(4) != b&#39;PIEH&#39;):
+        warn(&#34;{} does not have a .flo file signature&#34;.format(f.name))
+
+    width, height = struct.unpack(&#34;II&#34;, f.read(8))
+    result = np.fromfile(f, dtype=&#34;float32&#34;).reshape((height, width, 2))
+
+    # Set invalid flows to NaN
+    mask_u = np.greater(np.abs(result[..., 0]), 1e9, where=(~np.isnan(result[..., 0])))
+    mask_v = np.greater(np.abs(result[..., 1]), 1e9, where=(~np.isnan(result[..., 1])))
+
+    result[mask_u | mask_v] = np.NaN
+
+    return result</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flow_io.flow_read_png"><code class="name flex">
+<span>def <span class="ident">flow_read_png</span></span>(<span>f)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flow_read_png(f):
+    width, height, stream, *_ = png.Reader(f).read()
+
+    file_content = np.concatenate(list(stream)).reshape((height, width, 3))
+    flow, valid = file_content[..., 0:2], file_content[..., 2]
+
+    flow = (flow.astype(np.float) - 2 ** 15) / 64.
+
+    flow[~valid.astype(np.bool)] = np.NaN
+
+    return flow</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flow_io.flow_write"><code class="name flex">
+<span>def <span class="ident">flow_write</span></span>(<span>output_file, flow, format=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Writes optical flow to file.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>output_file</code></strong> :&ensp;<code>{str, pathlib.Path, file}</code></dt>
+<dd>Path of the file to write or file object.</dd>
+<dt><strong><code>flow</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>3D flow in the HWF (Height, Width, Flow) layout.
+flow[&hellip;, 0] should be the x-displacement
+flow[&hellip;, 1] should be the y-displacement</dd>
+<dt><strong><code>format</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Specify in what format the flow is written, accepted formats: "png" or "flo"
+If None, it is guessed on the file extension</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="flowpy.flow_io.flow_read" href="#flowpy.flow_io.flow_read">flow_read()</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flow_write(output_file, flow, format=None):
+    &#34;&#34;&#34;
+    Writes optical flow to file.
+
+    Parameters
+    ----------
+    output_file: {str, pathlib.Path, file}
+        Path of the file to write or file object.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    format: str, optional
+        Specify in what format the flow is written, accepted formats: &#34;png&#34; or &#34;flo&#34;
+        If None, it is guessed on the file extension
+
+    See Also
+    --------
+    flow_read
+
+    &#34;&#34;&#34;
+
+    supported_formats = (&#34;png&#34;, &#34;flo&#34;)
+
+    output_format = guess_extension(output_file, override=format)
+
+    with FileManager(output_file, &#34;wb&#34;) as f:
+        if output_format == &#34;png&#34;:
+            flow_write_png(f, flow)
+        else:
+            flow_write_flo(f, flow)</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flow_io.flow_write_flo"><code class="name flex">
+<span>def <span class="ident">flow_write_flo</span></span>(<span>f, flow)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flow_write_flo(f, flow):
+    SENTINEL = 1666666800.0  # Only here to look like Middlebury original files
+    height, width, _ = flow.shape
+
+    image = flow.copy()
+    image[np.isnan(image)] = SENTINEL
+
+    f.write(b&#39;PIEH&#39;)
+    f.write(struct.pack(&#34;II&#34;, width, height))
+    image.astype(np.float32).tofile(f)</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flow_io.flow_write_png"><code class="name flex">
+<span>def <span class="ident">flow_write_png</span></span>(<span>f, flow)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flow_write_png(f, flow):
+    SENTINEL = 0.  # Only here to look like original KITTI files
+    height, width, _ = flow.shape
+    flow_copy = flow.copy()
+
+    valid = ~(np.isnan(flow[..., 0]) | np.isnan(flow[..., 1]))
+    flow_copy[~valid] = SENTINEL
+
+    flow_copy = (flow_copy * 64. + 2 ** 15).astype(np.uint16)
+    image = np.dstack((flow_copy, valid))
+
+    writer = png.Writer(width, height, bitdepth=16, greyscale=False)
+    writer.write(f, image.reshape((height, 3 * width)))</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flow_io.guess_extension"><code class="name flex">
+<span>def <span class="ident">guess_extension</span></span>(<span>abstract_file, override=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def guess_extension(abstract_file, override=None):
+    if override is not None:
+        return override
+
+    if isinstance(abstract_file, str):
+        return Path(abstract_file).suffix[1:]
+    elif isinstance(abstract_file, Path):
+        return abstract_file.suffix[1:]
+
+    return Path(abstract_file.name).suffix[1:]</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="flowpy.flow_io.FileManager"><code class="flex name class">
+<span>class <span class="ident">FileManager</span></span>
+<span>(</span><span>abstract_file, mode)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FileManager:
+    def __init__(self, abstract_file, mode):
+        self.abstract_file = abstract_file
+        self.opened_file = None
+        self.mode = mode
+
+    def __enter__(self):
+        if isinstance(self.abstract_file, str):
+            self.opened_file = open(self.abstract_file, self.mode)
+        elif isinstance(self.abstract_file, Path):
+            self.opened_file = self.abstract_file.open(self.mode)
+        else:
+            return self.abstract_file
+
+        return self.opened_file
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.opened_file is not None:
+            self.opened_file.close()</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="flowpy" href="index.html">flowpy</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="flowpy.flow_io.flow_read" href="#flowpy.flow_io.flow_read">flow_read</a></code></li>
+<li><code><a title="flowpy.flow_io.flow_read_flo" href="#flowpy.flow_io.flow_read_flo">flow_read_flo</a></code></li>
+<li><code><a title="flowpy.flow_io.flow_read_png" href="#flowpy.flow_io.flow_read_png">flow_read_png</a></code></li>
+<li><code><a title="flowpy.flow_io.flow_write" href="#flowpy.flow_io.flow_write">flow_write</a></code></li>
+<li><code><a title="flowpy.flow_io.flow_write_flo" href="#flowpy.flow_io.flow_write_flo">flow_write_flo</a></code></li>
+<li><code><a title="flowpy.flow_io.flow_write_png" href="#flowpy.flow_io.flow_write_png">flow_write_png</a></code></li>
+<li><code><a title="flowpy.flow_io.guess_extension" href="#flowpy.flow_io.guess_extension">guess_extension</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="flowpy.flow_io.FileManager" href="#flowpy.flow_io.FileManager">FileManager</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

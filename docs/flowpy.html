@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>flowpy.flowpy API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>flowpy.flowpy</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import matplotlib.pyplot as plt
+import numpy as np
+
+from collections import namedtuple
+from itertools import accumulate
+from matplotlib.ticker import AutoMinorLocator
+
+DEFAULT_TRANSITIONS = (15, 6, 4, 11, 13, 6)
+
+
+def flow_to_rgb(flow, flow_max_radius=None, background=&#34;bright&#34;, custom_colorwheel=None):
+    &#34;&#34;&#34;
+    Creates a RGB representation of an optical flow.
+
+    Parameters
+    ----------
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+
+    flow_max_radius: float, optionnal
+        Set the radius that gives the maximum color intensity, useful for comparing different flows.
+        Default: The normalization is based on the input flow maximum radius.
+
+    background: str, optionnal
+        States if zero-valued flow should look &#39;bright&#39; or &#39;dark&#39;
+        Default: &#34;bright&#34;
+
+    custom_colorwheel: numpy.ndarray
+        Use a custom colorwheel for specific hue transition lengths.
+        By default, the default transition lengths are used.
+
+    Returns
+    -------
+    rgb_image: numpy.ndarray
+        A 2D RGB image that represents the flow
+
+    See Also
+    --------
+    make_colorwheel
+
+    &#34;&#34;&#34;
+
+    valid_backgrounds = (&#34;bright&#34;, &#34;dark&#34;)
+    if background not in valid_backgrounds:
+        raise ValueError(&#34;background should be one the following: {}, not {}&#34;.format(
+            valid_backgrounds, background))
+
+    wheel = make_colorwheel() if custom_colorwheel is None else custom_colorwheel
+
+    flow_height, flow_width, _ = flow.shape
+
+    complex_flow = flow[..., 0] + 1j * flow[..., 1]
+    complex_flow, nan_mask = replace_nans(complex_flow)
+
+    radius, angle = np.abs(complex_flow), np.angle(complex_flow)
+
+    if flow_max_radius is None:
+        flow_max_radius = np.max(radius)
+
+    if flow_max_radius &gt; 0:
+        radius /= flow_max_radius
+
+    ncols = len(wheel)
+
+    # Map the angles from (-pi, pi] to [0, ncols - 1)
+    angle = (-angle + np.pi) * ((ncols - 1) / (2 * np.pi))
+
+    # Interpolate the hues
+    (angle_fractional, angle_floor), angle_ceil = np.modf(angle), np.ceil(angle)
+    angle_fractional = angle_fractional.reshape((angle_fractional.shape) + (1,))
+    float_hue = (wheel[angle_floor.astype(np.int)] * (1 - angle_fractional) +
+                 wheel[angle_ceil.astype(np.int)] * angle_fractional)
+
+    ColorizationArgs = namedtuple(&#34;ColorizationArgs&#34;, [
+        &#39;move_hue_valid_radius&#39;,
+        &#39;move_hue_oversized_radius&#39;,
+        &#39;invalid_color&#39;])
+
+    def move_hue_on_V_axis(hues, factors):
+        return hues * np.expand_dims(factors, -1)
+
+    def move_hue_on_S_axis(hues, factors):
+        return 255. - np.expand_dims(factors, -1) * (255. - hues)
+
+    if background == &#34;dark&#34;:
+        parameters = ColorizationArgs(move_hue_on_V_axis, move_hue_on_S_axis,
+                                      np.array([255, 255, 255], dtype=np.float))
+    else:
+        parameters = ColorizationArgs(move_hue_on_S_axis, move_hue_on_V_axis,
+                                      np.array([0, 0, 0], dtype=np.float))
+
+    colors = parameters.move_hue_valid_radius(float_hue, radius)
+
+    oversized_radius_mask = radius &gt; 1
+    colors[oversized_radius_mask] = parameters.move_hue_oversized_radius(
+        float_hue[oversized_radius_mask],
+        1 / radius[oversized_radius_mask]
+    )
+    colors[nan_mask] = parameters.invalid_color
+
+    return colors.astype(np.uint8)
+
+
+def make_colorwheel(transitions=DEFAULT_TRANSITIONS):
+    &#34;&#34;&#34;
+    Creates a color wheel.
+
+    A color wheel defines the transitions between the six primary hues:
+    Red(255, 0, 0), Yellow(255, 255, 0), Green(0, 255, 0), Cyan(0, 255, 255), Blue(0, 0, 255) and Magenta(255, 0, 255).
+
+    Parameters
+    ----------
+    transitions: sequence_like
+        Contains the length of the six transitions.
+        Defaults to (15, 6, 4, 11, 13, 6), based on humain perception.
+
+    Returns
+    -------
+    colorwheel: numpy.ndarray
+        The RGB values of the transitions in the color space.
+
+    Notes
+    -----
+    For more information, take a look at
+    https://web.archive.org/web/20051107102013/http://members.shaw.ca/quadibloc/other/colint.htm
+
+    &#34;&#34;&#34;
+
+    colorwheel_length = sum(transitions)
+
+    # The red hue is repeated to make the color wheel cyclic
+    base_hues = map(np.array,
+                    ([255, 0, 0], [255, 255, 0], [0, 255, 0],
+                     [0, 255, 255], [0, 0, 255], [255, 0, 255],
+                     [255, 0, 0]))
+
+    colorwheel = np.zeros((colorwheel_length, 3), dtype=&#34;uint8&#34;)
+    hue_from = next(base_hues)
+    start_index = 0
+    for hue_to, end_index in zip(base_hues, accumulate(transitions)):
+        transition_length = end_index - start_index
+
+        colorwheel[start_index:end_index] = np.linspace(
+            hue_from, hue_to, transition_length, endpoint=False)
+        hue_from = hue_to
+        start_index = end_index
+
+    return colorwheel
+
+
+def calibration_pattern(pixel_size=151, flow_max_radius=1, **flow_to_rgb_args):
+    &#34;&#34;&#34;
+    Generates a calibration pattern.
+
+    Useful to add a legend to your optical flow plots.
+
+    Parameters
+    ----------
+    pixel_size: int
+        Radius of the square test pattern.
+    flow_max_radius: float
+        The maximum radius value represented by the calibration pattern.
+    flow_to_rgb_args: kwargs
+        Arguments passed to the flow_to_rgb function
+
+    Returns
+    -------
+    calibration_img: numpy.ndarray
+        The RGB image representation of the calibration pattern.
+    calibration_flow: numpy.ndarray
+        The flow represented in the calibration_pattern. In HWF layout
+
+    &#34;&#34;&#34;
+    half_width = pixel_size // 2
+
+    y_grid, x_grid = np.mgrid[:pixel_size, :pixel_size]
+
+    u = flow_max_radius * (x_grid / half_width - 1)
+    v = flow_max_radius * (y_grid / half_width - 1)
+
+    flow = np.zeros((pixel_size, pixel_size, 2))
+    flow[..., 0] = u
+    flow[..., 1] = v
+
+    flow_to_rgb_args[&#34;flow_max_radius&#34;] = flow_max_radius
+    img = flow_to_rgb(flow, **flow_to_rgb_args)
+
+    return img, flow
+
+
+def attach_arrows(ax, flow, xy_steps=(20, 20),
+                  units=&#34;xy&#34;, color=&#34;w&#34;, angles=&#34;xy&#34;, **quiver_kwargs):
+    &#34;&#34;&#34;
+    Attach the flow arrows to a matplotlib axes using quiver.
+
+    Parameters:
+    -----------
+    ax: matplotlib.axes
+        The axes the arrows should be plotted on.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    xy_steps: sequence_like
+        The arrows are plotted every xy_steps[0] in the x-dimension and xy_steps[1] in the y-dimension
+
+    Quiver Parameters:
+    ------------------
+    The following parameters are here to override matplotlib.quiver&#39;s defaults.
+    units: str
+        See matplotlib.quiver documentation.
+    color: str
+        See matplotlib.quiver documentation.
+    angles: str
+        See matplotlib.quiver documentation.
+    quiver_kwargs: kwargs
+        Other parameters passed to matplotlib.quiver
+        See matplotlib.quiver documentation.
+
+    Returns
+    -------
+    quiver_artist: matplotlib.artist
+        See matplotlib.quiver documentation
+        Useful for removing the arrows from the figure
+
+    &#34;&#34;&#34;
+    height, width, _ = flow.shape
+
+    y_grid, x_grid = np.mgrid[:height, :width]
+
+    step_x, step_y = xy_steps
+    half_step_x, half_step_y = step_x // 2, step_y // 2
+
+    return ax.quiver(
+        x_grid[half_step_x::step_x, half_step_y::step_y],
+        y_grid[half_step_x::step_x, half_step_y::step_y],
+        flow[half_step_x::step_x, half_step_y::step_y, 0],
+        flow[half_step_x::step_x, half_step_y::step_y, 1],
+        angles=angles,
+        units=units, color=color, **quiver_kwargs,
+    )
+
+
+def attach_coord(ax, flow, extent=None):
+    &#34;&#34;&#34;
+    Attach the flow value to the coordinate tooltip.
+
+    It allows you to see on the same figure, the RGB value of the pixel and the underlying value of the flow.
+    Shows cartesian and polar coordinates.
+
+    Parameters:
+    -----------
+    ax: matplotlib.axes
+        The axes the arrows should be plotted on.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    extent: sequence_like, optional
+        Use this parameters in combination with matplotlib.imshow to resize the RGB plot.
+        See matplotlib.imshow extent parameter.
+        See attach_calibration_pattern
+
+    &#34;&#34;&#34;
+    height, width, _ = flow.shape
+    base_format = ax.format_coord
+    if extent is not None:
+        left, right, bottom, top = extent
+        x_ratio = width / (right - left)
+        y_ratio = height / (top - bottom)
+
+    def new_format_coord(x, y):
+        if extent is None:
+            int_x = int(x + 0.5)
+            int_y = int(y + 0.5)
+        else:
+            int_x = int((x - left) * x_ratio)
+            int_y = int((y - bottom) * y_ratio)
+
+        if 0 &lt;= int_x &lt; width and 0 &lt;= int_y &lt; height:
+            format_string = &#34;Coord: x={}, y={} / Flow: &#34;.format(int_x, int_y)
+
+            u, v = flow[int_y, int_x, :]
+            if np.isnan(u) or np.isnan(v):
+                format_string += &#34;invalid&#34;
+            else:
+                complex_flow = u - 1j * v
+                r, h = np.abs(complex_flow), np.angle(complex_flow, deg=True)
+                format_string += (&#34;u={:.2f}, v={:.2f} (cartesian) ρ={:.2f}, θ={:.2f}° (polar)&#34;
+                                  .format(u, v, r, h))
+            return format_string
+        else:
+            return base_format(x, y)
+
+    ax.format_coord = new_format_coord
+
+
+def attach_calibration_pattern(ax, **calibration_pattern_kwargs):
+    &#34;&#34;&#34;
+    Attach a calibration pattern to axes.
+
+    This function uses calibration_pattern to generate a figure and shows it as nicely as possible.
+
+    Parameters:
+    -----------
+    calibration_pattern_kwargs: kwargs, optional
+        Parameters to be given to the calibration_pattern function.
+
+    See Also:
+    ---------
+    calibration_pattern
+
+    Returns
+    -------
+    image_axes: matplotlib.AxesImage
+        See matplotlib.imshow documentation
+        Useful for changing the image dynamically
+    circle_artist: matplotlib.artist
+        See matplotlib.circle documentation
+        Useful for removing the circle from the figure
+
+    &#34;&#34;&#34;
+    pattern, flow = calibration_pattern(**calibration_pattern_kwargs)
+    flow_max_radius = calibration_pattern_kwargs.get(&#34;flow_max_radius&#34;, 1)
+
+    extent = (-flow_max_radius, flow_max_radius) * 2
+
+    image = ax.imshow(pattern, extent=extent)
+    ax.spines[&#34;top&#34;].set_visible(False)
+    ax.spines[&#34;right&#34;].set_visible(False)
+
+    for spine in (&#34;bottom&#34;, &#34;left&#34;):
+        ax.spines[spine].set_position(&#34;zero&#34;)
+        ax.spines[spine].set_linewidth(1)
+
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+    attach_coord(ax, flow, extent=extent)
+
+    circle = plt.Circle((0, 0), flow_max_radius, fill=False, lw=1)
+    ax.add_artist(circle)
+
+    return image, circle
+
+
+def replace_nans(array, value=0):
+    nan_mask = np.isnan(array)
+    array[nan_mask] = value
+
+    return array, nan_mask
+
+
+def get_flow_max_radius(flow):
+    return np.sqrt(np.nanmax(np.sum(flow ** 2, axis=2)))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="flowpy.flowpy.attach_arrows"><code class="name flex">
+<span>def <span class="ident">attach_arrows</span></span>(<span>ax, flow, xy_steps=(20, 20), units='xy', color='w', angles='xy', **quiver_kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Attach the flow arrows to a matplotlib axes using quiver.</p>
+<h2 id="parameters">Parameters:</h2>
+<p>ax: matplotlib.axes
+The axes the arrows should be plotted on.
+flow: numpy.ndarray
+3D flow in the HWF (Height, Width, Flow) layout.
+flow[&hellip;, 0] should be the x-displacement
+flow[&hellip;, 1] should be the y-displacement
+xy_steps: sequence_like
+The arrows are plotted every xy_steps[0] in the x-dimension and xy_steps[1] in the y-dimension</p>
+<h2 id="quiver-parameters">Quiver Parameters:</h2>
+<p>The following parameters are here to override matplotlib.quiver's defaults.
+units: str
+See matplotlib.quiver documentation.
+color: str
+See matplotlib.quiver documentation.
+angles: str
+See matplotlib.quiver documentation.
+quiver_kwargs: kwargs
+Other parameters passed to matplotlib.quiver
+See matplotlib.quiver documentation.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>quiver_artist</code></strong> :&ensp;<code>matplotlib.artist</code></dt>
+<dd>See matplotlib.quiver documentation
+Useful for removing the arrows from the figure</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def attach_arrows(ax, flow, xy_steps=(20, 20),
+                  units=&#34;xy&#34;, color=&#34;w&#34;, angles=&#34;xy&#34;, **quiver_kwargs):
+    &#34;&#34;&#34;
+    Attach the flow arrows to a matplotlib axes using quiver.
+
+    Parameters:
+    -----------
+    ax: matplotlib.axes
+        The axes the arrows should be plotted on.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    xy_steps: sequence_like
+        The arrows are plotted every xy_steps[0] in the x-dimension and xy_steps[1] in the y-dimension
+
+    Quiver Parameters:
+    ------------------
+    The following parameters are here to override matplotlib.quiver&#39;s defaults.
+    units: str
+        See matplotlib.quiver documentation.
+    color: str
+        See matplotlib.quiver documentation.
+    angles: str
+        See matplotlib.quiver documentation.
+    quiver_kwargs: kwargs
+        Other parameters passed to matplotlib.quiver
+        See matplotlib.quiver documentation.
+
+    Returns
+    -------
+    quiver_artist: matplotlib.artist
+        See matplotlib.quiver documentation
+        Useful for removing the arrows from the figure
+
+    &#34;&#34;&#34;
+    height, width, _ = flow.shape
+
+    y_grid, x_grid = np.mgrid[:height, :width]
+
+    step_x, step_y = xy_steps
+    half_step_x, half_step_y = step_x // 2, step_y // 2
+
+    return ax.quiver(
+        x_grid[half_step_x::step_x, half_step_y::step_y],
+        y_grid[half_step_x::step_x, half_step_y::step_y],
+        flow[half_step_x::step_x, half_step_y::step_y, 0],
+        flow[half_step_x::step_x, half_step_y::step_y, 1],
+        angles=angles,
+        units=units, color=color, **quiver_kwargs,
+    )</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flowpy.attach_calibration_pattern"><code class="name flex">
+<span>def <span class="ident">attach_calibration_pattern</span></span>(<span>ax, **calibration_pattern_kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Attach a calibration pattern to axes.</p>
+<p>This function uses calibration_pattern to generate a figure and shows it as nicely as possible.</p>
+<h2 id="parameters">Parameters:</h2>
+<p>calibration_pattern_kwargs: kwargs, optional
+Parameters to be given to the calibration_pattern function.</p>
+<h2 id="see-also">See Also:</h2>
+<p>calibration_pattern</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>image_axes</code></strong> :&ensp;<code>matplotlib.AxesImage</code></dt>
+<dd>See matplotlib.imshow documentation
+Useful for changing the image dynamically</dd>
+<dt><strong><code>circle_artist</code></strong> :&ensp;<code>matplotlib.artist</code></dt>
+<dd>See matplotlib.circle documentation
+Useful for removing the circle from the figure</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def attach_calibration_pattern(ax, **calibration_pattern_kwargs):
+    &#34;&#34;&#34;
+    Attach a calibration pattern to axes.
+
+    This function uses calibration_pattern to generate a figure and shows it as nicely as possible.
+
+    Parameters:
+    -----------
+    calibration_pattern_kwargs: kwargs, optional
+        Parameters to be given to the calibration_pattern function.
+
+    See Also:
+    ---------
+    calibration_pattern
+
+    Returns
+    -------
+    image_axes: matplotlib.AxesImage
+        See matplotlib.imshow documentation
+        Useful for changing the image dynamically
+    circle_artist: matplotlib.artist
+        See matplotlib.circle documentation
+        Useful for removing the circle from the figure
+
+    &#34;&#34;&#34;
+    pattern, flow = calibration_pattern(**calibration_pattern_kwargs)
+    flow_max_radius = calibration_pattern_kwargs.get(&#34;flow_max_radius&#34;, 1)
+
+    extent = (-flow_max_radius, flow_max_radius) * 2
+
+    image = ax.imshow(pattern, extent=extent)
+    ax.spines[&#34;top&#34;].set_visible(False)
+    ax.spines[&#34;right&#34;].set_visible(False)
+
+    for spine in (&#34;bottom&#34;, &#34;left&#34;):
+        ax.spines[spine].set_position(&#34;zero&#34;)
+        ax.spines[spine].set_linewidth(1)
+
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+    attach_coord(ax, flow, extent=extent)
+
+    circle = plt.Circle((0, 0), flow_max_radius, fill=False, lw=1)
+    ax.add_artist(circle)
+
+    return image, circle</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flowpy.attach_coord"><code class="name flex">
+<span>def <span class="ident">attach_coord</span></span>(<span>ax, flow, extent=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Attach the flow value to the coordinate tooltip.</p>
+<p>It allows you to see on the same figure, the RGB value of the pixel and the underlying value of the flow.
+Shows cartesian and polar coordinates.</p>
+<h2 id="parameters">Parameters:</h2>
+<p>ax: matplotlib.axes
+The axes the arrows should be plotted on.
+flow: numpy.ndarray
+3D flow in the HWF (Height, Width, Flow) layout.
+flow[&hellip;, 0] should be the x-displacement
+flow[&hellip;, 1] should be the y-displacement
+extent: sequence_like, optional
+Use this parameters in combination with matplotlib.imshow to resize the RGB plot.
+See matplotlib.imshow extent parameter.
+See attach_calibration_pattern</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def attach_coord(ax, flow, extent=None):
+    &#34;&#34;&#34;
+    Attach the flow value to the coordinate tooltip.
+
+    It allows you to see on the same figure, the RGB value of the pixel and the underlying value of the flow.
+    Shows cartesian and polar coordinates.
+
+    Parameters:
+    -----------
+    ax: matplotlib.axes
+        The axes the arrows should be plotted on.
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    extent: sequence_like, optional
+        Use this parameters in combination with matplotlib.imshow to resize the RGB plot.
+        See matplotlib.imshow extent parameter.
+        See attach_calibration_pattern
+
+    &#34;&#34;&#34;
+    height, width, _ = flow.shape
+    base_format = ax.format_coord
+    if extent is not None:
+        left, right, bottom, top = extent
+        x_ratio = width / (right - left)
+        y_ratio = height / (top - bottom)
+
+    def new_format_coord(x, y):
+        if extent is None:
+            int_x = int(x + 0.5)
+            int_y = int(y + 0.5)
+        else:
+            int_x = int((x - left) * x_ratio)
+            int_y = int((y - bottom) * y_ratio)
+
+        if 0 &lt;= int_x &lt; width and 0 &lt;= int_y &lt; height:
+            format_string = &#34;Coord: x={}, y={} / Flow: &#34;.format(int_x, int_y)
+
+            u, v = flow[int_y, int_x, :]
+            if np.isnan(u) or np.isnan(v):
+                format_string += &#34;invalid&#34;
+            else:
+                complex_flow = u - 1j * v
+                r, h = np.abs(complex_flow), np.angle(complex_flow, deg=True)
+                format_string += (&#34;u={:.2f}, v={:.2f} (cartesian) ρ={:.2f}, θ={:.2f}° (polar)&#34;
+                                  .format(u, v, r, h))
+            return format_string
+        else:
+            return base_format(x, y)
+
+    ax.format_coord = new_format_coord</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flowpy.calibration_pattern"><code class="name flex">
+<span>def <span class="ident">calibration_pattern</span></span>(<span>pixel_size=151, flow_max_radius=1, **flow_to_rgb_args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates a calibration pattern.</p>
+<p>Useful to add a legend to your optical flow plots.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>pixel_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Radius of the square test pattern.</dd>
+<dt><strong><code>flow_max_radius</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum radius value represented by the calibration pattern.</dd>
+<dt><strong><code>flow_to_rgb_args</code></strong> :&ensp;<code>kwargs</code></dt>
+<dd>Arguments passed to the flow_to_rgb function</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>calibration_img</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The RGB image representation of the calibration pattern.</dd>
+<dt><strong><code>calibration_flow</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The flow represented in the calibration_pattern. In HWF layout</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calibration_pattern(pixel_size=151, flow_max_radius=1, **flow_to_rgb_args):
+    &#34;&#34;&#34;
+    Generates a calibration pattern.
+
+    Useful to add a legend to your optical flow plots.
+
+    Parameters
+    ----------
+    pixel_size: int
+        Radius of the square test pattern.
+    flow_max_radius: float
+        The maximum radius value represented by the calibration pattern.
+    flow_to_rgb_args: kwargs
+        Arguments passed to the flow_to_rgb function
+
+    Returns
+    -------
+    calibration_img: numpy.ndarray
+        The RGB image representation of the calibration pattern.
+    calibration_flow: numpy.ndarray
+        The flow represented in the calibration_pattern. In HWF layout
+
+    &#34;&#34;&#34;
+    half_width = pixel_size // 2
+
+    y_grid, x_grid = np.mgrid[:pixel_size, :pixel_size]
+
+    u = flow_max_radius * (x_grid / half_width - 1)
+    v = flow_max_radius * (y_grid / half_width - 1)
+
+    flow = np.zeros((pixel_size, pixel_size, 2))
+    flow[..., 0] = u
+    flow[..., 1] = v
+
+    flow_to_rgb_args[&#34;flow_max_radius&#34;] = flow_max_radius
+    img = flow_to_rgb(flow, **flow_to_rgb_args)
+
+    return img, flow</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flowpy.flow_to_rgb"><code class="name flex">
+<span>def <span class="ident">flow_to_rgb</span></span>(<span>flow, flow_max_radius=None, background='bright', custom_colorwheel=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a RGB representation of an optical flow.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>flow</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>3D flow in the HWF (Height, Width, Flow) layout.
+flow[&hellip;, 0] should be the x-displacement
+flow[&hellip;, 1] should be the y-displacement</dd>
+<dt><strong><code>flow_max_radius</code></strong> :&ensp;<code>float, optionnal</code></dt>
+<dd>Set the radius that gives the maximum color intensity, useful for comparing different flows.
+Default: The normalization is based on the input flow maximum radius.</dd>
+<dt><strong><code>background</code></strong> :&ensp;<code>str, optionnal</code></dt>
+<dd>States if zero-valued flow should look 'bright' or 'dark'
+Default: "bright"</dd>
+<dt><strong><code>custom_colorwheel</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>Use a custom colorwheel for specific hue transition lengths.
+By default, the default transition lengths are used.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rgb_image</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>A 2D RGB image that represents the flow</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="flowpy.flowpy.make_colorwheel" href="#flowpy.flowpy.make_colorwheel">make_colorwheel()</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flow_to_rgb(flow, flow_max_radius=None, background=&#34;bright&#34;, custom_colorwheel=None):
+    &#34;&#34;&#34;
+    Creates a RGB representation of an optical flow.
+
+    Parameters
+    ----------
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+
+    flow_max_radius: float, optionnal
+        Set the radius that gives the maximum color intensity, useful for comparing different flows.
+        Default: The normalization is based on the input flow maximum radius.
+
+    background: str, optionnal
+        States if zero-valued flow should look &#39;bright&#39; or &#39;dark&#39;
+        Default: &#34;bright&#34;
+
+    custom_colorwheel: numpy.ndarray
+        Use a custom colorwheel for specific hue transition lengths.
+        By default, the default transition lengths are used.
+
+    Returns
+    -------
+    rgb_image: numpy.ndarray
+        A 2D RGB image that represents the flow
+
+    See Also
+    --------
+    make_colorwheel
+
+    &#34;&#34;&#34;
+
+    valid_backgrounds = (&#34;bright&#34;, &#34;dark&#34;)
+    if background not in valid_backgrounds:
+        raise ValueError(&#34;background should be one the following: {}, not {}&#34;.format(
+            valid_backgrounds, background))
+
+    wheel = make_colorwheel() if custom_colorwheel is None else custom_colorwheel
+
+    flow_height, flow_width, _ = flow.shape
+
+    complex_flow = flow[..., 0] + 1j * flow[..., 1]
+    complex_flow, nan_mask = replace_nans(complex_flow)
+
+    radius, angle = np.abs(complex_flow), np.angle(complex_flow)
+
+    if flow_max_radius is None:
+        flow_max_radius = np.max(radius)
+
+    if flow_max_radius &gt; 0:
+        radius /= flow_max_radius
+
+    ncols = len(wheel)
+
+    # Map the angles from (-pi, pi] to [0, ncols - 1)
+    angle = (-angle + np.pi) * ((ncols - 1) / (2 * np.pi))
+
+    # Interpolate the hues
+    (angle_fractional, angle_floor), angle_ceil = np.modf(angle), np.ceil(angle)
+    angle_fractional = angle_fractional.reshape((angle_fractional.shape) + (1,))
+    float_hue = (wheel[angle_floor.astype(np.int)] * (1 - angle_fractional) +
+                 wheel[angle_ceil.astype(np.int)] * angle_fractional)
+
+    ColorizationArgs = namedtuple(&#34;ColorizationArgs&#34;, [
+        &#39;move_hue_valid_radius&#39;,
+        &#39;move_hue_oversized_radius&#39;,
+        &#39;invalid_color&#39;])
+
+    def move_hue_on_V_axis(hues, factors):
+        return hues * np.expand_dims(factors, -1)
+
+    def move_hue_on_S_axis(hues, factors):
+        return 255. - np.expand_dims(factors, -1) * (255. - hues)
+
+    if background == &#34;dark&#34;:
+        parameters = ColorizationArgs(move_hue_on_V_axis, move_hue_on_S_axis,
+                                      np.array([255, 255, 255], dtype=np.float))
+    else:
+        parameters = ColorizationArgs(move_hue_on_S_axis, move_hue_on_V_axis,
+                                      np.array([0, 0, 0], dtype=np.float))
+
+    colors = parameters.move_hue_valid_radius(float_hue, radius)
+
+    oversized_radius_mask = radius &gt; 1
+    colors[oversized_radius_mask] = parameters.move_hue_oversized_radius(
+        float_hue[oversized_radius_mask],
+        1 / radius[oversized_radius_mask]
+    )
+    colors[nan_mask] = parameters.invalid_color
+
+    return colors.astype(np.uint8)</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flowpy.get_flow_max_radius"><code class="name flex">
+<span>def <span class="ident">get_flow_max_radius</span></span>(<span>flow)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_flow_max_radius(flow):
+    return np.sqrt(np.nanmax(np.sum(flow ** 2, axis=2)))</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flowpy.make_colorwheel"><code class="name flex">
+<span>def <span class="ident">make_colorwheel</span></span>(<span>transitions=(15, 6, 4, 11, 13, 6))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a color wheel.</p>
+<p>A color wheel defines the transitions between the six primary hues:
+Red(255, 0, 0), Yellow(255, 255, 0), Green(0, 255, 0), Cyan(0, 255, 255), Blue(0, 0, 255) and Magenta(255, 0, 255).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>transitions</code></strong> :&ensp;<code>sequence_like</code></dt>
+<dd>Contains the length of the six transitions.
+Defaults to (15, 6, 4, 11, 13, 6), based on humain perception.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>colorwheel</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The RGB values of the transitions in the color space.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>For more information, take a look at
+<a href="https://web.archive.org/web/20051107102013/http://members.shaw.ca/quadibloc/other/colint.htm">https://web.archive.org/web/20051107102013/http://members.shaw.ca/quadibloc/other/colint.htm</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_colorwheel(transitions=DEFAULT_TRANSITIONS):
+    &#34;&#34;&#34;
+    Creates a color wheel.
+
+    A color wheel defines the transitions between the six primary hues:
+    Red(255, 0, 0), Yellow(255, 255, 0), Green(0, 255, 0), Cyan(0, 255, 255), Blue(0, 0, 255) and Magenta(255, 0, 255).
+
+    Parameters
+    ----------
+    transitions: sequence_like
+        Contains the length of the six transitions.
+        Defaults to (15, 6, 4, 11, 13, 6), based on humain perception.
+
+    Returns
+    -------
+    colorwheel: numpy.ndarray
+        The RGB values of the transitions in the color space.
+
+    Notes
+    -----
+    For more information, take a look at
+    https://web.archive.org/web/20051107102013/http://members.shaw.ca/quadibloc/other/colint.htm
+
+    &#34;&#34;&#34;
+
+    colorwheel_length = sum(transitions)
+
+    # The red hue is repeated to make the color wheel cyclic
+    base_hues = map(np.array,
+                    ([255, 0, 0], [255, 255, 0], [0, 255, 0],
+                     [0, 255, 255], [0, 0, 255], [255, 0, 255],
+                     [255, 0, 0]))
+
+    colorwheel = np.zeros((colorwheel_length, 3), dtype=&#34;uint8&#34;)
+    hue_from = next(base_hues)
+    start_index = 0
+    for hue_to, end_index in zip(base_hues, accumulate(transitions)):
+        transition_length = end_index - start_index
+
+        colorwheel[start_index:end_index] = np.linspace(
+            hue_from, hue_to, transition_length, endpoint=False)
+        hue_from = hue_to
+        start_index = end_index
+
+    return colorwheel</code></pre>
+</details>
+</dd>
+<dt id="flowpy.flowpy.replace_nans"><code class="name flex">
+<span>def <span class="ident">replace_nans</span></span>(<span>array, value=0)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def replace_nans(array, value=0):
+    nan_mask = np.isnan(array)
+    array[nan_mask] = value
+
+    return array, nan_mask</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="flowpy" href="index.html">flowpy</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="flowpy.flowpy.attach_arrows" href="#flowpy.flowpy.attach_arrows">attach_arrows</a></code></li>
+<li><code><a title="flowpy.flowpy.attach_calibration_pattern" href="#flowpy.flowpy.attach_calibration_pattern">attach_calibration_pattern</a></code></li>
+<li><code><a title="flowpy.flowpy.attach_coord" href="#flowpy.flowpy.attach_coord">attach_coord</a></code></li>
+<li><code><a title="flowpy.flowpy.calibration_pattern" href="#flowpy.flowpy.calibration_pattern">calibration_pattern</a></code></li>
+<li><code><a title="flowpy.flowpy.flow_to_rgb" href="#flowpy.flowpy.flow_to_rgb">flow_to_rgb</a></code></li>
+<li><code><a title="flowpy.flowpy.get_flow_max_radius" href="#flowpy.flowpy.get_flow_max_radius">get_flow_max_radius</a></code></li>
+<li><code><a title="flowpy.flowpy.make_colorwheel" href="#flowpy.flowpy.make_colorwheel">make_colorwheel</a></code></li>
+<li><code><a title="flowpy.flowpy.replace_nans" href="#flowpy.flowpy.replace_nans">replace_nans</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
