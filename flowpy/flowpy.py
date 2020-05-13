@@ -64,8 +64,9 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
 
     ncols = len(wheel)
 
-    # Map the angles from (-pi, pi] to [0, ncols - 1)
-    angle = (-angle + np.pi) * ((ncols - 1) / (2 * np.pi))
+    # Map the angles from (-pi, pi] to [0, 2pi) to [0, ncols - 1)
+    angle[angle < 0] += 2 * np.pi
+    angle = angle * ((ncols - 1) / (2 * np.pi))
 
     # Interpolate the hues
     (angle_fractional, angle_floor), angle_ceil = np.modf(angle), np.ceil(angle)
