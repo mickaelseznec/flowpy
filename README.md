@@ -46,6 +46,8 @@ plt.show()
 #### Result:
 ![simple_example]
 
+*Sample image from the [KITTI](http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=flow) dataset*
+
 ### Plotting arrows, showing flow values and a calibration pattern
 
 Flowpy comes with more than just RGB plots, the main features here are:
@@ -79,6 +81,8 @@ plt.show()
 
 #### Result:
 ![complex_example]
+
+*Sample image from the [Middlebury](http://vision.middlebury.edu/flow/data/) dataset*
 
 ### More
 
