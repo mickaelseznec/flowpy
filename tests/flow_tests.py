@@ -48,7 +48,7 @@ class CalibrationPatternTestCase(unittest.TestCase):
 
 class FlowInputOutput(unittest.TestCase):
     def test_read_write_flo(self):
-        input_filepath = "tests/data/Dimetrodon.flo"
+        input_filepath = "static/Dimetrodon.flo"
         flow = flowpy.flow_read(input_filepath)
 
         with tempfile.NamedTemporaryFile("wb", suffix=".flo") as f:
@@ -56,7 +56,7 @@ class FlowInputOutput(unittest.TestCase):
             self.assertTrue(filecmp.cmp(f.name, input_filepath))
 
     def test_read_write_png_occ(self):
-        input_filepath = "tests/data/kitti_occ_000010_10.png"
+        input_filepath = "static/kitti_occ_000010_10.png"
 
         flow = flowpy.flow_read(input_filepath)
 
@@ -70,7 +70,7 @@ class FlowInputOutput(unittest.TestCase):
             os.remove(output_filename)
 
     def test_read_write_png_noc(self):
-        input_filepath = "tests/data/kitti_noc_000010_10.png"
+        input_filepath = "static/kitti_noc_000010_10.png"
 
         flow = flowpy.flow_read(input_filepath)
 
@@ -86,12 +86,12 @@ class FlowInputOutput(unittest.TestCase):
 
 class FlowDisplay(unittest.TestCase):
     def test_flow_to_rgb(self):
-        flow = flowpy.flow_read("tests/data/Dimetrodon.flo")
+        flow = flowpy.flow_read("static/Dimetrodon.flo")
         plt.imshow(flowpy.flow_to_rgb(flow))
         plt.show()
 
     def test_flow_with_arrows(self):
-        flow = flowpy.flow_read("tests/data/kitti_occ_000010_10.png")
+        flow = flowpy.flow_read("static/kitti_occ_000010_10.png")
 
         fig, ax = plt.subplots()
         ax.imshow(flowpy.flow_to_rgb(flow))
@@ -100,7 +100,7 @@ class FlowDisplay(unittest.TestCase):
         plt.show()
 
     def test_flow_arrows_and_coord(self):
-        flow = flowpy.flow_read("tests/data/Dimetrodon.flo")
+        flow = flowpy.flow_read("static/Dimetrodon.flo")
 
         fig, ax = plt.subplots()
         ax.imshow(flowpy.flow_to_rgb(flow))
@@ -110,7 +110,7 @@ class FlowDisplay(unittest.TestCase):
         plt.show()
 
     def test_flow_arrows_coord_and_calibration_pattern(self):
-        flow = flowpy.flow_read("tests/data/Dimetrodon.flo")
+        flow = flowpy.flow_read("static/Dimetrodon.flo")
         height, width, _ = flow.shape
         image_ratio = height / width
 
