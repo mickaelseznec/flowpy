@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='flowpy',
-      version='0.2',
+      version='0.3.1',
       description='Tools for working with optical flow',
       url='http://github.com/mickaelseznec/flowpy',
       author='Mickaël Seznec',
