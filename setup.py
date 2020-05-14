@@ -12,5 +12,9 @@ setup(name='flowpy',
           'matplotlib',
           'numpy',
           'pypng',
+          'scipy',
+      ],
+      test_requires=[
+          'PIL',
       ],
       zip_safe=False)

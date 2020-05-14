@@ -4,6 +4,7 @@ import numpy as np
 from collections import namedtuple
 from itertools import accumulate
 from matplotlib.ticker import AutoMinorLocator
+from scipy.ndimage import map_coordinates
 
 DEFAULT_TRANSITIONS = (15, 6, 4, 11, 13, 6)
 
@@ -345,6 +346,50 @@ def attach_calibration_pattern(ax, **calibration_pattern_kwargs):
     ax.add_artist(circle)
 
     return image, circle
+
+
+def backward_warp(second_image, flow, **map_coordinates_kwargs):
+    """
+    Compute the backwarp warp of an image.
+
+    Given second_image and the flow from first_image to second_image, it warps the second_image to something close to the first image if the flow is accurate.
+
+    Parameters:
+    -----------
+    second_image: numpy.ndarray
+        Image of the form [H, W] or [H, W, C] for greyscale or RGB images
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout, from first_image to second_image.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    map_coordinates_kwargs: kwargs
+        Keyword arguments passed to scipy.ndimage.map_coordinates
+        Most important ones are *mode* for out-of-bound handling (defaults to nearest),
+        and "order" to set the quality of the interpolation.
+        see scipy.ndimage.map_coordinates
+
+    Returns
+    -------
+    first_image: numpy.ndarray
+        The warped image with same dimensions as second_image.
+    """
+    height, width, *_ = second_image.shape
+    coord = np.mgrid[:height, :width]
+
+    points = coord.transpose(1, 2, 0).reshape((-1, 2))
+    gx = (coord[1] + flow[..., 0])
+    gy = (coord[0] + flow[..., 1])
+
+    if "mode" not in map_coordinates_kwargs:
+        map_coordinates_kwargs["mode"] = "nearest"
+
+    first_image = np.zeros_like(second_image)
+    if second_image.ndim == 3:
+        for dim in range(second_image.shape[2]):
+            map_coordinates(second_image[..., dim], (gy, gx), first_image[..., dim], **map_coordinates_kwargs)
+    else:
+        map_coordinates(second_image, (gy, gx), first_image, **map_coordinates_kwargs)
+    return first_image
 
 
 def replace_nans(array, value=0):

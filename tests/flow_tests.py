@@ -7,6 +7,8 @@ import sys
 import tempfile
 import unittest
 
+from PIL import Image
+
 import flowpy
 
 
@@ -124,6 +126,38 @@ class FlowDisplay(unittest.TestCase):
         flowpy.attach_coord(ax_1, flow)
 
         flowpy.attach_calibration_pattern(ax_2, flow_max_radius=max_radius)
+
+        plt.show()
+
+
+class FlowWarp(unittest.TestCase):
+    def test_backward_warp_greyscale(self):
+        flow = flowpy.flow_read("static/kitti_occ_000010_10.png")
+        first_image = np.asarray(Image.open("static/kitti_000010_10.png").convert("L"))
+        second_image = np.asarray(Image.open("static/kitti_000010_11.png").convert("L"))
+
+        flow[np.isnan(flow)] = 0
+        warped_first_image = flowpy.backward_warp(second_image, flow)
+
+        fig, (ax_1, ax_2, ax_3) = plt.subplots(3, 1)
+        ax_1.imshow(first_image)
+        ax_2.imshow(second_image)
+        ax_3.imshow(warped_first_image)
+
+        plt.show()
+
+    def test_backward_warp_rgb(self):
+        flow = flowpy.flow_read("static/kitti_occ_000010_10.png")
+        first_image = np.asarray(Image.open("static/kitti_000010_10.png"))
+        second_image = np.asarray(Image.open("static/kitti_000010_11.png"))
+
+        flow[np.isnan(flow)] = 0
+        warped_first_image = flowpy.backward_warp(second_image, flow)
+
+        fig, (ax_1, ax_2, ax_3) = plt.subplots(3, 1)
+        ax_1.imshow(first_image)
+        ax_2.imshow(second_image)
+        ax_3.imshow(warped_first_image)
 
         plt.show()
 
