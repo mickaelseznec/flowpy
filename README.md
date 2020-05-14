@@ -116,7 +116,7 @@ plt.show()
 #### Result:
 ![warp_example]
 
-Note that the artifacts in the warp are normal, due to unknown flow and occlusions.
+Note that the artifacts in the warp are normal, they are caused by unknown flows and occlusions.
 
 ### More
 
