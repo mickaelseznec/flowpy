@@ -22,6 +22,7 @@ The main features of flowpy are:
     - **.flo** (as defined [here](http://vision.middlebury.edu/flow/))
     - **.png** (as defined [here](http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=flow))
 - Visualizing optical flows with matplotlib
+- Backward-warp images
 
 ## Examples
 
@@ -84,6 +85,39 @@ plt.show()
 
 *Sample image from the [Middlebury](http://vision.middlebury.edu/flow/data/) dataset*
 
+### Warping images:
+If you know the flow (first_image -> second_image), you can backward warp the second_image back to first_image.
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+from PIL import Image
+
+import flowpy
+
+flow = flowpy.flow_read("static/kitti_occ_000010_10.png")
+first_image = np.asarray(Image.open("static/kitti_000010_10.png"))
+second_image = np.asarray(Image.open("static/kitti_000010_11.png"))
+
+flow[np.isnan(flow)] = 0
+warped_first_image = flowpy.backward_warp(second_image, flow)
+
+fig, axes = plt.subplots(3, 1)
+for ax, image, title in zip(axes, (first_image, second_image, warped_first_image),
+                            ("First Image", "Second Image", "Second image warped to first image")):
+    ax.imshow(image)
+    ax.set_title(title)
+    ax.set_axis_off()
+
+plt.show()
+```
+
+#### Result:
+![warp_example]
+
+Note that the artifacts in the warp are normal, due to unknown flow and occlusions.
+
 ### More
 
 You can find more examples in the `tests` folder.
@@ -94,3 +128,4 @@ I would like to thank Simon Baker, Daniel Scharste, J. P. Lewis, Stefan Roth, Mi
 
 [simple_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_0.png "Displaying an optical flow as an RGB image"
 [complex_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_1.png "Displaying an optical flow as an RGB image with arrows, tooltip and legend"
+[warp_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_2.png "An example of backward warp"
