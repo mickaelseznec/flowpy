@@ -161,5 +161,35 @@ class FlowWarp(unittest.TestCase):
 
         plt.show()
 
+    def test_forward_warp_rgb(self):
+        flow = flowpy.flow_read("static/kitti_occ_000010_10.png")
+        first_image = np.asarray(Image.open("static/kitti_000010_10.png"))
+        second_image = np.asarray(Image.open("static/kitti_000010_11.png"))
+
+        flow[np.isnan(flow)] = 0
+        warped_second_image = flowpy.forward_warp(first_image, flow, k=1)
+
+        fig, (ax_1, ax_2, ax_3) = plt.subplots(3, 1)
+        ax_1.imshow(first_image)
+        ax_2.imshow(flowpy.flow_to_rgb(flow))
+        ax_3.imshow(warped_second_image)
+
+        plt.show()
+
+    def test_forward_warp_greyscale(self):
+        flow = flowpy.flow_read("static/kitti_occ_000010_10.png")
+        first_image = np.asarray(Image.open("static/kitti_000010_10.png").convert("L"))
+        second_image = np.asarray(Image.open("static/kitti_000010_11.png").convert("L"))
+
+        flow[np.isnan(flow)] = 0
+        warped_second_image = flowpy.forward_warp(first_image, flow, k=4)
+
+        fig, (ax_1, ax_2, ax_3) = plt.subplots(3, 1)
+        ax_1.imshow(first_image)
+        ax_2.imshow(flowpy.flow_to_rgb(flow))
+        ax_3.imshow(warped_second_image)
+
+        plt.show()
+
 if __name__ == "__main__":
     unittest.main()

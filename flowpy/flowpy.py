@@ -5,6 +5,7 @@ from collections import namedtuple
 from itertools import accumulate
 from matplotlib.ticker import AutoMinorLocator
 from scipy.ndimage import map_coordinates
+from scipy.spatial import cKDTree
 
 DEFAULT_TRANSITIONS = (15, 6, 4, 11, 13, 6)
 
@@ -376,7 +377,6 @@ def backward_warp(second_image, flow, **map_coordinates_kwargs):
     height, width, *_ = second_image.shape
     coord = np.mgrid[:height, :width]
 
-    points = coord.transpose(1, 2, 0).reshape((-1, 2))
     gx = (coord[1] + flow[..., 0])
     gy = (coord[0] + flow[..., 1])
 
@@ -390,6 +390,60 @@ def backward_warp(second_image, flow, **map_coordinates_kwargs):
     else:
         map_coordinates(second_image, (gy, gx), first_image, **map_coordinates_kwargs)
     return first_image
+
+
+def forward_warp(first_image, flow, k=1):
+    """
+    Compute the forward warp of an image.
+
+    Given first_image and the flow from first_image to second_image, it warps the first_image to something close to the first image if the flow is accurate.
+
+    It uses a k-nearest neighbors search to perform an interpolation.
+
+    Parameters:
+    -----------
+    first_image: numpy.ndarray
+        Image of the form [H, W] or [H, W, C] for greyscale or RGB images
+    flow: numpy.ndarray
+        3D flow in the HWF (Height, Width, Flow) layout, from first_image to second_image.
+        flow[..., 0] should be the x-displacement
+        flow[..., 1] should be the y-displacement
+    k: int, optional
+        How many neighbors should be taken into account to interpolate.
+
+    Returns
+    -------
+    second_image: numpy.ndarray
+        The warped image with same dimensions as first_image.
+    """
+    first_image_3d = first_image[..., np.newaxis] if first_image.ndim == 2 else first_image
+    height, width, channels = first_image_3d.shape
+
+    coord = np.mgrid[:height, :width]
+    grid = coord.transpose(1, 2, 0).reshape((width * height, 2))
+
+    gx = (coord[1] + flow[..., 0])
+    gy = (coord[0] + flow[..., 1])
+
+    warped_points = np.asarray((gy.flatten(), gx.flatten())).T
+    kdt = cKDTree(warped_points)
+
+    distance, neighbor = kdt.query(grid, k=k)
+
+    y, x = neighbor // width, neighbor % width
+
+    neigbor_values = first_image_3d[(y, x)]
+
+    if k == 1:
+        second_image_flat = neigbor_values
+    else:
+        weights = np.exp(-distance[..., np.newaxis])
+        normalizer = np.sum(weights, axis=1)
+
+        second_image_flat = np.sum(neigbor_values * weights, axis=1)
+        second_image_flat = (second_image_flat / normalizer).astype(first_image.dtype)
+
+    return second_image_flat.reshape(first_image.shape)
 
 
 def replace_nans(array, value=0):

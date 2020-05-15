@@ -58,9 +58,6 @@ Flowpy comes with more than just RGB plots, the main features here are:
 
 #### Code:
 ```python
-import flowpy
-import matplotlib.pyplot as plt
-
 flow = flowpy.flow_read("tests/data/Dimetrodon.flo")
 height, width, _ = flow.shape
 
@@ -85,17 +82,10 @@ plt.show()
 
 *Sample image from the [Middlebury](http://vision.middlebury.edu/flow/data/) dataset*
 
-### Warping images:
+### Warping images (backward):
 If you know the flow (first_image -> second_image), you can backward warp the second_image back to first_image.
 
 ```python
-import matplotlib.pyplot as plt
-import numpy as np
-
-from PIL import Image
-
-import flowpy
-
 flow = flowpy.flow_read("static/kitti_occ_000010_10.png")
 first_image = np.asarray(Image.open("static/kitti_000010_10.png"))
 second_image = np.asarray(Image.open("static/kitti_000010_11.png"))
@@ -118,14 +108,43 @@ plt.show()
 
 Note that the artifacts in the warp are normal, they are caused by unknown flows and occlusions.
 
+### Warping images (forward):
+
+Forward warp is often less used as it is quite more complex. It relies on a k-nearest neighbor search instead of direct bi-linear interpolation.
+
+`forward_warp` is about 10x slower than `backward_warp` but you still may find it useful.
+
+```python
+flow = flowpy.flow_read("static/kitti_occ_000010_10.png")
+first_image = np.asarray(Image.open("static/kitti_000010_10.png"))
+second_image = np.asarray(Image.open("static/kitti_000010_11.png"))
+
+flow[np.isnan(flow)] = 0
+warped_second_image = flowpy.forward_warp(first_image, flow)
+
+fig, axes = plt.subplots(2, 1)
+for ax, image, title in zip(axes, (first_image, warped_second_image),
+                            ("First Image", "First image warped to the second")):
+    ax.imshow(image)
+    ax.set_title(title)
+    ax.set_axis_off()
+
+plt.show()
+```
+
+#### Result:
+![forward_warp_example]
+
+
 ### More
 
-You can find more examples in the `tests` folder.
+You can find the above examples in the `examples` folder. You can also look in `tests`.
 If you encounter a bug or have an idea for a new feature, feel free to open an issue.
 
 Most of the visualization and io handling has been translated from matlab and c code from the [Middlebury flow code](http://vision.middlebury.edu/flow/code/flow-code/).
-I would like to thank Simon Baker, Daniel Scharste, J. P. Lewis, Stefan Roth, Michael J. Blackand Richard Szeliski.
+Credits to thank Simon Baker, Daniel Scharste, J. P. Lewis, Stefan Roth, Michael J. Black and Richard Szeliski.
 
-[simple_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_0.png "Displaying an optical flow as an RGB image"
-[complex_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_1.png "Displaying an optical flow as an RGB image with arrows, tooltip and legend"
-[warp_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_2.png "An example of backward warp"
+[simple_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_rgb.png "Displaying an optical flow as an RGB image"
+[complex_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_arrows.png "Displaying an optical flow as an RGB image with arrows, tooltip and legend"
+[backwarp_warp_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_backward_warp.png "An example of backward warp"
+[forward_warp_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_forward_warp.png "An example of backward warp"
