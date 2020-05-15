@@ -392,7 +392,7 @@ def backward_warp(second_image, flow, **map_coordinates_kwargs):
     return first_image
 
 
-def forward_warp(first_image, flow, k=1):
+def forward_warp(first_image, flow, k=4):
     """
     Compute the forward warp of an image.
 
