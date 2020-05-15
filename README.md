@@ -146,5 +146,5 @@ Credits to thank Simon Baker, Daniel Scharste, J. P. Lewis, Stefan Roth, Michael
 
 [simple_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_rgb.png "Displaying an optical flow as an RGB image"
 [complex_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_arrows.png "Displaying an optical flow as an RGB image with arrows, tooltip and legend"
-[backwarp_warp_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_backward_warp.png "An example of backward warp"
+[backward_warp_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_backward_warp.png "An example of backward warp"
 [forward_warp_example]: https://raw.githubusercontent.com/mickaelseznec/flowpy/master/static/example_forward_warp.png "An example of backward warp"
