@@ -22,7 +22,7 @@ The main features of flowpy are:
     - **.flo** (as defined [here](http://vision.middlebury.edu/flow/))
     - **.png** (as defined [here](http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=flow))
 - Visualizing optical flows with matplotlib
-- Backward-warp images
+- Backward and forward warp
 
 ## Examples
 
@@ -104,7 +104,7 @@ plt.show()
 ```
 
 #### Result:
-![warp_example]
+![backward_warp_example]
 
 Note that the artifacts in the warp are normal, they are caused by unknown flows and occlusions.
 
