@@ -70,6 +70,9 @@ def flow_to_rgb(flow, flow_max_radius=None, background="bright", custom_colorwhe
     angle[angle < 0] += 2 * np.pi
     angle = angle * ((ncols - 1) / (2 * np.pi))
 
+    # Make the wheel cyclic for interpolation
+    wheel = np.vstack((wheel, wheel[0]))
+
     # Interpolate the hues
     (angle_fractional, angle_floor), angle_ceil = np.modf(angle), np.ceil(angle)
     angle_fractional = angle_fractional.reshape((angle_fractional.shape) + (1,))
