@@ -4,13 +4,13 @@ with open("README.md") as f:
     long_description = f.read()
 
 setup(name='flowpy',
-      version='0.4',
+      version='0.4.2',
       description='Tools for working with optical flow',
       long_description=long_description,
       long_description_content_type='text/markdown',
-      url='http://github.com/mickaelseznec/flowpy',
+      url='https://gitlab-research.centralesupelec.fr/2018seznecm/flowpy',
       author='Mickaël Seznec',
-      author_email='flowpy@seznec.xyz',
+      author_email='mickael.seznec@centralesupelec.fr',
       license='MIT',
       packages=['flowpy'],
       install_requires=[
