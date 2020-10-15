@@ -4,7 +4,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 setup(name='flowpy',
-      version='0.4.2',
+      version='0.5.0',
       description='Tools for working with optical flow',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -21,5 +21,8 @@ setup(name='flowpy',
       ],
       test_requires=[
           'PIL',
+      ],
+      scripts=[
+          'scripts/flowread'
       ],
       zip_safe=False)

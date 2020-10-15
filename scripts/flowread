@@ -1,0 +1,331 @@
+#! /usr/bin/env python3
+
+import argparse
+import flowpy
+import matplotlib
+import tifffile
+import numpy as np
+import sys
+matplotlib.use('Qt5Agg')
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+from matplotlib.widgets import Slider
+from PyQt5 import QtCore, QtWidgets
+
+from DOFGT import InputManager
+
+class InputManager():
+    def __init__(self, file_paths):
+        self.input_paths = file_paths
+
+    def open(self):
+        if len(self.input_paths) == 1:
+            self._data = np.asarray([flowpy.flow_read(self.input_paths[0])])
+        elif len(self.input_paths) == 2:
+            self._data = tifffile.imread(self.input_paths)
+            if self._data.ndim == 3:
+                self._data = np.asarray([self._data])
+            self._data = self._data.transpose((1, 2, 3, 0))
+        return self
+
+    def close(self):
+        pass
+
+    def get_shape(self):
+        return self._data.shape
+
+    def get_data(self, index):
+        return self._data[index]
+
+    def __enter__(self):
+        return self.open()
+
+    def __exit__(self, type, value, tb):
+        self.close()
+
+
+class MatplotlibCanvas(FigureCanvas):
+    def __init__(self, plot_options,
+                 parent=None, is_dynamic=False,
+                 width=5, height=4,
+                 dpi=100, initial_index=0):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        FigureCanvas.__init__(self, fig)
+        FigureCanvas.setSizePolicy(
+            self,
+            QtWidgets.QSizePolicy.Expanding,
+            QtWidgets.QSizePolicy.Expanding
+        )
+        FigureCanvas.updateGeometry(self)
+        self.fig = fig
+        self.setParent(parent)
+        self.index = initial_index
+        self.is_dynamic = is_dynamic
+
+        self.ax_im, self.ax_cal = fig.subplots(1, 2)
+        self.image = None
+        self.arrows = None
+        self.circle = None
+
+        self.handle_plot_options_changed(plot_options)
+        self.handle_parent_data_changed()
+
+    def update_current_image(self):
+        data_slice = self.get_current_data_slice()
+        self.current_flow = data_slice
+        height, width, _ = self.current_flow.shape
+
+        grid_spec = matplotlib.gridspec.GridSpec(1, 2, width_ratios=[1, height/width])
+        self.ax_im.set_position(grid_spec[0].get_position(self.fig))
+        self.ax_cal.set_position(grid_spec[1].get_position(self.fig))
+
+        flowpy_options = {}
+        flowpy_options["background"] = self.plot_options["background"]
+
+        if self.plot_options["dynamic"]:
+            max_norm = flowpy.get_flow_max_radius(self.current_flow)
+            if max_norm:
+                self.on_flow_scale_changed(max_norm)
+                flowpy_options["flow_max_radius"] = max_norm
+        else:
+            flowpy_options["flow_max_radius"] = self.plot_options["flow_max_radius"]
+
+        new_image = flowpy.flow_to_rgb(self.current_flow, **flowpy_options)
+        if self.arrows:
+            self.arrows.remove()
+            self.arrows = None
+
+        if self.plot_options["show_arrows"]:
+            self.arrows = flowpy.attach_arrows(self.ax_im, self.current_flow,
+                                               scale_units="xy", scale=1.0)
+
+        if self.image is None:
+            self.image = self.ax_im.imshow(new_image)
+        else:
+            self.image.set_data(new_image)
+        flowpy.attach_coord(self.ax_im, self.current_flow)
+
+        if self.circle:
+            self.circle.remove()
+            self.circle = None
+        _, self.circle = flowpy.attach_calibration_pattern(self.ax_cal, **flowpy_options)
+
+        self.ax_im.set_xlabel("Index = {}".format(self.index))
+        self.image.axes.figure.canvas.draw()
+
+    def handle_parent_data_changed(self):
+        self.image = None
+        self.update_current_image()
+
+    def handle_configuration_changed(self):
+        self.update_current_image()
+
+    def handle_cursor_changed(self, value):
+        self.index = value
+        self.update_current_image()
+
+    def handle_plot_options_changed(self, plot_options):
+        self.plot_options = plot_options.copy()
+        self.update_current_image()
+
+    def on_flow_scale_changed(self, value):
+        self.parent().on_flow_scale_changed(value)
+
+    def get_current_data_slice(self):
+        return self.parent().get_data_slice(self.index)
+
+
+class ImageFrameSlider(QtWidgets.QSlider):
+    def __init__(self, orientation, parent=None):
+        super(QtWidgets.QSlider, self).__init__(orientation, parent)
+        self.setTickPosition(QtWidgets.QSlider.TicksAbove)
+        self.setMinimum(0)
+        self.valueChanged.connect(self.parent().on_cursor_changed)
+
+        self.handle_parent_data_changed()
+
+    def handle_parent_data_changed(self):
+        self.setMaximum(self.parent().get_data_length() - 1)
+
+
+class PlotOptions(QtWidgets.QGroupBox):
+    default_parameters = {
+        "background": "bright",
+        "show_arrows": False,
+        "dynamic": True,
+        "flow_max_radius": 0.0,
+    }
+
+    def __init__(self, parent=None):
+        super().__init__("Plot parameters", parent)
+        self.inner_state = self.default_parameters.copy()
+
+        main_layout = QtWidgets.QHBoxLayout()
+
+        self.min_is_black = QtWidgets.QCheckBox("min_is_black", self)
+        self.min_is_black.setChecked(self.default_parameters["background"] == "dark")
+        self.min_is_black.toggled.connect(self.handle_state_changed)
+
+        self.arrows = QtWidgets.QCheckBox("arrows", self)
+        self.arrows.setChecked(self.default_parameters["show_arrows"])
+        self.arrows.toggled.connect(self.handle_state_changed)
+
+        self.dynamic = QtWidgets.QCheckBox("auto scale", self)
+        self.dynamic.setChecked(not self.default_parameters["flow_max_radius"])
+        self.dynamic.toggled.connect(self.handle_state_changed)
+
+        self.range = QtWidgets.QDoubleSpinBox(self)
+        self.range.setEnabled(False)
+        self.range.setValue(0.1)
+        self.range.setRange(0.1, 1e3)
+        self.range.setSingleStep(0.1)
+        self.range.valueChanged.connect(self.handle_state_changed)
+
+        main_layout.addWidget(self.min_is_black)
+        main_layout.addWidget(self.arrows)
+        main_layout.addWidget(self.dynamic)
+        main_layout.addWidget(self.range)
+
+        self.setLayout(main_layout)
+        self.handle_state_changed()
+
+    def update_inner_state(self):
+        self.inner_state["background"] = "dark" if self.min_is_black.isChecked() else "bright"
+        self.inner_state["show_arrows"] = self.arrows.isChecked()
+        self.inner_state["dynamic"] = self.dynamic.isChecked()
+        self.inner_state["flow_max_radius"] = self.range.value()
+
+
+    def handle_state_changed(self):
+        self.update_inner_state()
+        self.range.setEnabled(not self.inner_state["dynamic"])
+        self.parent().on_plot_options_changed(self.inner_state)
+
+    def handle_flow_scale_changed(self, value):
+        self.range.setValue(value)
+
+
+class DOFMainWidget(QtWidgets.QWidget):
+    def __init__(self, file_paths=None):
+        super(QtWidgets.QWidget, self).__init__()
+        self._abstract_input = None
+
+        self.canvas = None
+
+        self.plot_options = PlotOptions(self)
+
+        self.canvas = MatplotlibCanvas(
+            PlotOptions.default_parameters,
+            self, width=10, height=4, dpi=100
+        )
+        self.toolbar = NavigationToolbar(self.canvas, self)
+        self.slider = ImageFrameSlider(QtCore.Qt.Horizontal, self)
+
+        layout = QtWidgets.QVBoxLayout(self)
+
+        layout.addWidget(self.toolbar)
+        layout.addWidget(self.canvas)
+        layout.addWidget(self.slider)
+        layout.addWidget(self.plot_options)
+
+        if file_paths:
+            self.handle_new_database(file_paths)
+
+    def handle_new_database(self, path):
+        self.close_database()
+        self._abstract_input = InputManager(path).open()
+
+        self.slider.handle_parent_data_changed()
+        self.canvas.handle_parent_data_changed()
+
+    def close_database(self):
+        if self._abstract_input is not None:
+            self._abstract_input.close()
+            self._abstract_input = None
+
+    def get_data_resolution(self):
+        if self._abstract_input is None:
+            return (10, 10)
+        return self._abstract_input.get_shape()[1:]
+
+    def get_data_length(self):
+        if self._abstract_input is None:
+            return 1
+        return self._abstract_input.get_shape()[0]
+
+    def get_data_slice(self, index):
+        if self._abstract_input is None:
+            return np.zeros((10, 10, 2))
+
+        return self._abstract_input.get_data(index)
+
+    def on_configuration_changed(self):
+        self.canvas.handle_configuration_changed()
+
+    def on_plot_options_changed(self, value):
+        if self.canvas:
+            self.canvas.handle_plot_options_changed(value)
+
+    def on_cursor_changed(self, value):
+        self.canvas.handle_cursor_changed(value)
+
+    def on_flow_scale_changed(self, value):
+        self.plot_options.handle_flow_scale_changed(value)
+
+
+class DOFQTWindow(QtWidgets.QMainWindow):
+    def __init__(self, main_widget):
+        QtWidgets.QMainWindow.__init__(self)
+
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.setWindowTitle("DOFGTReader")
+
+        self.file_menu = QtWidgets.QMenu('&File', self)
+        self.file_menu.addAction(
+            '&Quit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q
+        )
+        self.file_menu.addAction(
+            '&Open...', self.fileOpen, QtCore.Qt.CTRL + QtCore.Qt.Key_O
+        )
+        self.menuBar().addMenu(self.file_menu)
+
+        self.main_widget = main_widget
+        self.main_widget.setFocus()
+        self.setCentralWidget(self.main_widget)
+
+    def fileOpen(self):
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Open Optical Flow reference",
+            "",
+            "All Files (*);;HDF5 files (*.hdf5)"
+        )
+
+        if filename:
+            self.main_widget.handle_new_database([filename])
+
+    def fileQuit(self):
+        self.main_widget.close_database()
+        self.close()
+
+    def closeEvent(self, ce):
+        self.fileQuit()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file_paths", nargs="*")
+    args = parser.parse_args()
+
+    qt_app = QtWidgets.QApplication([""])
+    main_widget = DOFMainWidget(**vars(args))
+    dof_viewer_widget = DOFQTWindow(main_widget)
+    dof_viewer_widget.show()
+
+    sys.exit(qt_app.exec_())
+
+
+if __name__ == "__main__":
+    main()
